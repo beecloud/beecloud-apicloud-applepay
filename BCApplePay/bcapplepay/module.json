@@ -1,0 +1,6 @@
+{
+    "name":"bcapplepay",
+    "class":"BCApplePay",
+    "methods":["pay","getApiVersion","canMakeApplePayments"],
+    "launchClassMethod":"launch"
+}
