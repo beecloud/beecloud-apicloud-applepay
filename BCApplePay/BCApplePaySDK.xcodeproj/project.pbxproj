@@ -153,7 +153,7 @@
 		360CF4221D50C5DE00677C72 /* BeeCloudAdapterProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BeeCloudAdapterProtocol.h; sourceTree = "<group>"; };
 		360CF4291D50C5DE00677C72 /* BCPay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BCPay.h; sourceTree = "<group>"; };
 		360CF42A1D50C5DE00677C72 /* BCPay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BCPay.m; sourceTree = "<group>"; };
-		364BC4D41B5502C700EAFCCE /* libBeeCloud.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBeeCloud.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		364BC4D41B5502C700EAFCCE /* libBCApplePay.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBCApplePay.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		368D38F51D225B5900929E5E /* PassKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PassKit.framework; path = System/Library/Frameworks/PassKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -345,7 +345,7 @@
 		364BC4D51B5502C700EAFCCE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				364BC4D41B5502C700EAFCCE /* libBeeCloud.a */,
+				364BC4D41B5502C700EAFCCE /* libBCApplePay.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -413,7 +413,7 @@
 			);
 			name = BCApplePaySDK;
 			productName = BCPaySDK;
-			productReference = 364BC4D41B5502C700EAFCCE /* libBeeCloud.a */;
+			productReference = 364BC4D41B5502C700EAFCCE /* libBCApplePay.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */

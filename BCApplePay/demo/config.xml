@@ -9,13 +9,8 @@
     <content src="./index.html" />
     <access origin="*" />
     
-    //add
-    <preference name="urlScheme" value="wxf1aa465362b4c8f1" />
-    
-    <feature name="beecloud">
-        <param name="urlScheme" value="wxf1aa465362b4c8f1" />
+    <feature name="bcapplepay">
         <param name="bcAppID" value="e66e760b-0f78-44bb-a9ae-b22729d51678" />
-        <param name="sandbox" value="false" />
     </feature>
 
 </widget>

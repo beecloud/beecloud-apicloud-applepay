@@ -28,7 +28,7 @@
     
     _cbId = [paramDic integerValueForKey:@"cbId" defaultValue:-1];
     BCPayReq *payReq = [[BCPayReq alloc] init];
-    payReq.channel = [paramDic stringValueForKey:@"channel" defaultValue:@""];
+    payReq.channel = PayChannelApple;
     payReq.title = [paramDic stringValueForKey:@"title" defaultValue:@""];
     payReq.totalFee = [NSString stringWithFormat:@"%ld",(long)[paramDic integerValueForKey:@"totalfee" defaultValue:0]];
     payReq.billNo = [paramDic stringValueForKey:@"billno" defaultValue:@""];
