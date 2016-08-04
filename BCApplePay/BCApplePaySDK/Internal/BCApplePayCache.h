@@ -14,7 +14,7 @@
 /**
  *  BCCache stores system settings and content caches.
  */
-@interface BCPayCache : NSObject
+@interface BCApplePayCache : NSObject
 
 /**
  *  App key obtained when registering this app in BeeCloud website. Change this value via [BeeCloud setAppKey:];
@@ -45,11 +45,5 @@
  */
 + (instancetype)sharedInstance;
 
-/**
- *  获取当前环境模式
- *
- *  @return YES代表沙箱测试环境；NO代表生产环境。
- */
-+ (BOOL)currentMode;
 
 @end

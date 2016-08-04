@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BCPayUtil.h"
+#import "BCUtil.h"
 
 @interface NSString (IsValid)
 - (BOOL)isValid;

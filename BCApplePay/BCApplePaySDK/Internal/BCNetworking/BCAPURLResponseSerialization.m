@@ -1,4 +1,4 @@
-// BCURLResponseSerialization.m
+// BCAPURLResponseSerialization.m
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "BCURLResponseSerialization.h"
+#import "BCAPURLResponseSerialization.h"
 
 #import <TargetConditionals.h>
 
@@ -31,11 +31,11 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
-NSString * const BCURLResponseSerializationErrorDomain = @"com.alamofire.error.serialization.response";
-NSString * const BCNetworkingOperationFailingURLResponseErrorKey = @"com.alamofire.serialization.response.error.response";
-NSString * const BCNetworkingOperationFailingURLResponseDataErrorKey = @"com.alamofire.serialization.response.error.data";
+NSString * const BCAPURLResponseSerializationErrorDomain = @"com.alamofire.error.serialization.response";
+NSString * const BCAPNetworkingOperationFailingURLResponseErrorKey = @"com.alamofire.serialization.response.error.response";
+NSString * const BCAPNetworkingOperationFailingURLResponseDataErrorKey = @"com.alamofire.serialization.response.error.data";
 
-static NSError * BCErrorWithUnderlyingError(NSError *error, NSError *underlyingError) {
+static NSError * BCAPErrorWithUnderlyingError(NSError *error, NSError *underlyingError) {
     if (!error) {
         return underlyingError;
     }
@@ -50,21 +50,21 @@ static NSError * BCErrorWithUnderlyingError(NSError *error, NSError *underlyingE
     return [[NSError alloc] initWithDomain:error.domain code:error.code userInfo:mutableUserInfo];
 }
 
-static BOOL BCErrorOrUnderlyingErrorHasCodeInDomain(NSError *error, NSInteger code, NSString *domain) {
+static BOOL BCAPErrorOrUnderlyingErrorHasCodeInDomain(NSError *error, NSInteger code, NSString *domain) {
     if ([error.domain isEqualToString:domain] && error.code == code) {
         return YES;
     } else if (error.userInfo[NSUnderlyingErrorKey]) {
-        return BCErrorOrUnderlyingErrorHasCodeInDomain(error.userInfo[NSUnderlyingErrorKey], code, domain);
+        return BCAPErrorOrUnderlyingErrorHasCodeInDomain(error.userInfo[NSUnderlyingErrorKey], code, domain);
     }
 
     return NO;
 }
 
-static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions readingOptions) {
+static id BCAPJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions readingOptions) {
     if ([JSONObject isKindOfClass:[NSArray class]]) {
         NSMutableArray *mutableArray = [NSMutableArray arrayWithCapacity:[(NSArray *)JSONObject count]];
         for (id value in (NSArray *)JSONObject) {
-            [mutableArray addObject:BCJSONObjectByRemovingKeysWithNullValues(value, readingOptions)];
+            [mutableArray addObject:BCAPJSONObjectByRemovingKeysWithNullValues(value, readingOptions)];
         }
 
         return (readingOptions & NSJSONReadingMutableContainers) ? mutableArray : [NSArray arrayWithArray:mutableArray];
@@ -75,7 +75,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
             if (!value || [value isEqual:[NSNull null]]) {
                 [mutableDictionary removeObjectForKey:key];
             } else if ([value isKindOfClass:[NSArray class]] || [value isKindOfClass:[NSDictionary class]]) {
-                mutableDictionary[key] = BCJSONObjectByRemovingKeysWithNullValues(value, readingOptions);
+                mutableDictionary[key] = BCAPJSONObjectByRemovingKeysWithNullValues(value, readingOptions);
             }
         }
 
@@ -85,7 +85,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return JSONObject;
 }
 
-@implementation BCHTTPResponseSerializer
+@implementation BCAPHTTPResponseSerializer
 
 + (instancetype)serializer {
     return [[self alloc] init];
@@ -120,15 +120,15 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
             if ([data length] > 0 && [response URL]) {
                 NSMutableDictionary *mutableUserInfo = [@{
-                                                          NSLocalizedDescriptionKey: [NSString stringWithFormat:NSLocalizedStringFromTable(@"Request failed: unacceptable content-type: %@", @"BCNetworking", nil), [response MIMEType]],
+                                                          NSLocalizedDescriptionKey: [NSString stringWithFormat:NSLocalizedStringFromTable(@"Request failed: unacceptable content-type: %@", @"BCAPNetworking", nil), [response MIMEType]],
                                                           NSURLErrorFailingURLErrorKey:[response URL],
-                                                          BCNetworkingOperationFailingURLResponseErrorKey: response,
+                                                          BCAPNetworkingOperationFailingURLResponseErrorKey: response,
                                                         } mutableCopy];
                 if (data) {
-                    mutableUserInfo[BCNetworkingOperationFailingURLResponseDataErrorKey] = data;
+                    mutableUserInfo[BCAPNetworkingOperationFailingURLResponseDataErrorKey] = data;
                 }
 
-                validationError = BCErrorWithUnderlyingError([NSError errorWithDomain:BCURLResponseSerializationErrorDomain code:NSURLErrorCannotDecodeContentData userInfo:mutableUserInfo], validationError);
+                validationError = BCAPErrorWithUnderlyingError([NSError errorWithDomain:BCAPURLResponseSerializationErrorDomain code:NSURLErrorCannotDecodeContentData userInfo:mutableUserInfo], validationError);
             }
 
             responseIsValid = NO;
@@ -136,16 +136,16 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
         if (self.acceptableStatusCodes && ![self.acceptableStatusCodes containsIndex:(NSUInteger)response.statusCode] && [response URL]) {
             NSMutableDictionary *mutableUserInfo = [@{
-                                               NSLocalizedDescriptionKey: [NSString stringWithFormat:NSLocalizedStringFromTable(@"Request failed: %@ (%ld)", @"BCNetworking", nil), [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], (long)response.statusCode],
+                                               NSLocalizedDescriptionKey: [NSString stringWithFormat:NSLocalizedStringFromTable(@"Request failed: %@ (%ld)", @"BCAPNetworking", nil), [NSHTTPURLResponse localizedStringForStatusCode:response.statusCode], (long)response.statusCode],
                                                NSURLErrorFailingURLErrorKey:[response URL],
-                                               BCNetworkingOperationFailingURLResponseErrorKey: response,
+                                               BCAPNetworkingOperationFailingURLResponseErrorKey: response,
                                        } mutableCopy];
 
             if (data) {
-                mutableUserInfo[BCNetworkingOperationFailingURLResponseDataErrorKey] = data;
+                mutableUserInfo[BCAPNetworkingOperationFailingURLResponseDataErrorKey] = data;
             }
 
-            validationError = BCErrorWithUnderlyingError([NSError errorWithDomain:BCURLResponseSerializationErrorDomain code:NSURLErrorBadServerResponse userInfo:mutableUserInfo], validationError);
+            validationError = BCAPErrorWithUnderlyingError([NSError errorWithDomain:BCAPURLResponseSerializationErrorDomain code:NSURLErrorBadServerResponse userInfo:mutableUserInfo], validationError);
 
             responseIsValid = NO;
         }
@@ -158,7 +158,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return responseIsValid;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
@@ -195,7 +195,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCHTTPResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPHTTPResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.acceptableStatusCodes = [self.acceptableStatusCodes copyWithZone:zone];
     serializer.acceptableContentTypes = [self.acceptableContentTypes copyWithZone:zone];
 
@@ -206,14 +206,14 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
 #pragma mark -
 
-@implementation BCJSONResponseSerializer
+@implementation BCAPJSONResponseSerializer
 
 + (instancetype)serializer {
     return [self serializerWithReadingOptions:(NSJSONReadingOptions)0];
 }
 
 + (instancetype)serializerWithReadingOptions:(NSJSONReadingOptions)readingOptions {
-    BCJSONResponseSerializer *serializer = [[self alloc] init];
+    BCAPJSONResponseSerializer *serializer = [[self alloc] init];
     serializer.readingOptions = readingOptions;
 
     return serializer;
@@ -230,21 +230,21 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return self;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
     if (![self validateResponse:(NSHTTPURLResponse *)response data:data error:error]) {
-        if (!error || BCErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCURLResponseSerializationErrorDomain)) {
+        if (!error || BCAPErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCAPURLResponseSerializationErrorDomain)) {
             return nil;
         }
     }
 
     id responseObject = nil;
     NSError *serializationError = nil;
-    // Workaround for behavior of Rails to return a single space for `head :ok` (a workaround for a bug in SBCari), which is not interpreted as valid input by NSJSONSerialization.
+    // Workaround for behavior of Rails to return a single space for `head :ok` (a workaround for a bug in SBCAPari), which is not interpreted as valid input by NSJSONSerialization.
     // See https://github.com/rails/rails/issues/1742
     BOOL isSpace = [data isEqualToData:[NSData dataWithBytes:" " length:1]];
     if (data.length > 0 && !isSpace) {
@@ -254,11 +254,11 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     }
 
     if (self.removesKeysWithNullValues && responseObject) {
-        responseObject = BCJSONObjectByRemovingKeysWithNullValues(responseObject, self.readingOptions);
+        responseObject = BCAPJSONObjectByRemovingKeysWithNullValues(responseObject, self.readingOptions);
     }
 
     if (error) {
-        *error = BCErrorWithUnderlyingError(serializationError, *error);
+        *error = BCAPErrorWithUnderlyingError(serializationError, *error);
     }
 
     return responseObject;
@@ -288,7 +288,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCJSONResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPJSONResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.readingOptions = self.readingOptions;
     serializer.removesKeysWithNullValues = self.removesKeysWithNullValues;
 
@@ -299,10 +299,10 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
 #pragma mark -
 
-@implementation BCXMLParserResponseSerializer
+@implementation BCAPXMLParserResponseSerializer
 
 + (instancetype)serializer {
-    BCXMLParserResponseSerializer *serializer = [[self alloc] init];
+    BCAPXMLParserResponseSerializer *serializer = [[self alloc] init];
 
     return serializer;
 }
@@ -318,14 +318,14 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return self;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSHTTPURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
     if (![self validateResponse:(NSHTTPURLResponse *)response data:data error:error]) {
-        if (!error || BCErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCURLResponseSerializationErrorDomain)) {
+        if (!error || BCAPErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCAPURLResponseSerializationErrorDomain)) {
             return nil;
         }
     }
@@ -339,14 +339,14 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
 #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
 
-@implementation BCXMLDocumentResponseSerializer
+@implementation BCAPXMLDocumentResponseSerializer
 
 + (instancetype)serializer {
     return [self serializerWithXMLDocumentOptions:0];
 }
 
 + (instancetype)serializerWithXMLDocumentOptions:(NSUInteger)mask {
-    BCXMLDocumentResponseSerializer *serializer = [[self alloc] init];
+    BCAPXMLDocumentResponseSerializer *serializer = [[self alloc] init];
     serializer.options = mask;
 
     return serializer;
@@ -363,14 +363,14 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return self;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
     if (![self validateResponse:(NSHTTPURLResponse *)response data:data error:error]) {
-        if (!error || BCErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCURLResponseSerializationErrorDomain)) {
+        if (!error || BCAPErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCAPURLResponseSerializationErrorDomain)) {
             return nil;
         }
     }
@@ -379,7 +379,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     NSXMLDocument *document = [[NSXMLDocument alloc] initWithData:data options:self.options error:&serializationError];
 
     if (error) {
-        *error = BCErrorWithUnderlyingError(serializationError, *error);
+        *error = BCAPErrorWithUnderlyingError(serializationError, *error);
     }
 
     return document;
@@ -407,7 +407,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCXMLDocumentResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPXMLDocumentResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.options = self.options;
 
     return serializer;
@@ -419,7 +419,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 
 #pragma mark -
 
-@implementation BCPropertyListResponseSerializer
+@implementation BCAPPropertyListResponseSerializer
 
 + (instancetype)serializer {
     return [self serializerWithFormat:NSPropertyListXMLFormat_v1_0 readOptions:0];
@@ -428,7 +428,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 + (instancetype)serializerWithFormat:(NSPropertyListFormat)format
                          readOptions:(NSPropertyListReadOptions)readOptions
 {
-    BCPropertyListResponseSerializer *serializer = [[self alloc] init];
+    BCAPPropertyListResponseSerializer *serializer = [[self alloc] init];
     serializer.format = format;
     serializer.readOptions = readOptions;
 
@@ -446,14 +446,14 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     return self;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
     if (![self validateResponse:(NSHTTPURLResponse *)response data:data error:error]) {
-        if (!error || BCErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCURLResponseSerializationErrorDomain)) {
+        if (!error || BCAPErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCAPURLResponseSerializationErrorDomain)) {
             return nil;
         }
     }
@@ -466,7 +466,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     }
 
     if (error) {
-        *error = BCErrorWithUnderlyingError(serializationError, *error);
+        *error = BCAPErrorWithUnderlyingError(serializationError, *error);
     }
 
     return responseObject;
@@ -496,7 +496,7 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCPropertyListResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPPropertyListResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.format = self.format;
     serializer.readOptions = self.readOptions;
 
@@ -511,15 +511,15 @@ static id BCJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
 #import <CoreGraphics/CoreGraphics.h>
 #import <UIKit/UIKit.h>
 
-@interface UIImage (BCNetworkingSBCeImageLoading)
-+ (UIImage *)BC_sBCeImageWithData:(NSData *)data;
+@interface UIImage (BCAPNetworkingSBCAPeImageLoading)
++ (UIImage *)BCAP_sBCAPeImageWithData:(NSData *)data;
 @end
 
 static NSLock* imageLock = nil;
 
-@implementation UIImage (BCNetworkingSBCeImageLoading)
+@implementation UIImage (BCAPNetworkingSBCAPeImageLoading)
 
-+ (UIImage *)BC_sBCeImageWithData:(NSData *)data {
++ (UIImage *)BCAP_sBCAPeImageWithData:(NSData *)data {
     UIImage* image = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -534,8 +534,8 @@ static NSLock* imageLock = nil;
 
 @end
 
-static UIImage * BCImageWithDataAtScale(NSData *data, CGFloat scale) {
-    UIImage *image = [UIImage BC_sBCeImageWithData:data];
+static UIImage * BCAPImageWithDataAtScale(NSData *data, CGFloat scale) {
+    UIImage *image = [UIImage BCAP_sBCAPeImageWithData:data];
     if (image.images) {
         return image;
     }
@@ -543,7 +543,7 @@ static UIImage * BCImageWithDataAtScale(NSData *data, CGFloat scale) {
     return [[UIImage alloc] initWithCGImage:[image CGImage] scale:scale orientation:image.imageOrientation];
 }
 
-static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *response, NSData *data, CGFloat scale) {
+static UIImage * BCAPInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *response, NSData *data, CGFloat scale) {
     if (!data || [data length] == 0) {
         return nil;
     }
@@ -560,7 +560,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
             CGColorSpaceRef imageColorSpace = CGImageGetColorSpace(imageRef);
             CGColorSpaceModel imageColorSpaceModel = CGColorSpaceGetModel(imageColorSpace);
 
-            // CGImageCreateWithJPEGDataProvider does not properly handle CMKY, so fall back to BCImageWithDataAtScale
+            // CGImageCreateWithJPEGDataProvider does not properly handle CMKY, so fall back to BCAPImageWithDataAtScale
             if (imageColorSpaceModel == kCGColorSpaceModelCMYK) {
                 CGImageRelease(imageRef);
                 imageRef = NULL;
@@ -570,7 +570,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
 
     CGDataProviderRelease(dataProvider);
 
-    UIImage *image = BCImageWithDataAtScale(data, scale);
+    UIImage *image = BCAPImageWithDataAtScale(data, scale);
     if (!imageRef) {
         if (image.images || !image) {
             return image;
@@ -637,7 +637,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
 #endif
 
 
-@implementation BCImageResponseSerializer
+@implementation BCAPImageResponseSerializer
 
 - (instancetype)init {
     self = [super init];
@@ -658,23 +658,23 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
     return self;
 }
 
-#pragma mark - BCURLResponseSerializer
+#pragma mark - BCAPURLResponseSerializer
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
     if (![self validateResponse:(NSHTTPURLResponse *)response data:data error:error]) {
-        if (!error || BCErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCURLResponseSerializationErrorDomain)) {
+        if (!error || BCAPErrorOrUnderlyingErrorHasCodeInDomain(*error, NSURLErrorCannotDecodeContentData, BCAPURLResponseSerializationErrorDomain)) {
             return nil;
         }
     }
 
 #if TARGET_OS_IOS || TARGET_OS_TV || TARGET_OS_WATCH
     if (self.automaticallyInflatesResponseImage) {
-        return BCInflatedImageFromResponseWithDataAtScale((NSHTTPURLResponse *)response, data, self.imageScale);
+        return BCAPInflatedImageFromResponseWithDataAtScale((NSHTTPURLResponse *)response, data, self.imageScale);
     } else {
-        return BCImageWithDataAtScale(data, self.imageScale);
+        return BCAPImageWithDataAtScale(data, self.imageScale);
     }
 #else
     // Ensure that the image is set to it's correct pixel width and height
@@ -722,7 +722,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCImageResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPImageResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
 
 #if TARGET_OS_IOS || TARGET_OS_TV || TARGET_OS_WATCH
     serializer.imageScale = self.imageScale;
@@ -736,27 +736,27 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
 
 #pragma mark -
 
-@interface BCCompoundResponseSerializer ()
+@interface BCAPCompoundResponseSerializer ()
 @property (readwrite, nonatomic, copy) NSArray *responseSerializers;
 @end
 
-@implementation BCCompoundResponseSerializer
+@implementation BCAPCompoundResponseSerializer
 
 + (instancetype)compoundSerializerWithResponseSerializers:(NSArray *)responseSerializers {
-    BCCompoundResponseSerializer *serializer = [[self alloc] init];
+    BCAPCompoundResponseSerializer *serializer = [[self alloc] init];
     serializer.responseSerializers = responseSerializers;
 
     return serializer;
 }
 
-#pragma mark - BCURLResponseSerialization
+#pragma mark - BCAPURLResponseSerialization
 
 - (id)responseObjectForResponse:(NSURLResponse *)response
                            data:(NSData *)data
                           error:(NSError *__autoreleasing *)error
 {
-    for (id <BCURLResponseSerialization> serializer in self.responseSerializers) {
-        if (![serializer isKindOfClass:[BCHTTPResponseSerializer class]]) {
+    for (id <BCAPURLResponseSerialization> serializer in self.responseSerializers) {
+        if (![serializer isKindOfClass:[BCAPHTTPResponseSerializer class]]) {
             continue;
         }
 
@@ -764,7 +764,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
         id responseObject = [serializer responseObjectForResponse:response data:data error:&serializerError];
         if (responseObject) {
             if (error) {
-                *error = BCErrorWithUnderlyingError(serializerError, *error);
+                *error = BCAPErrorWithUnderlyingError(serializerError, *error);
             }
 
             return responseObject;
@@ -796,7 +796,7 @@ static UIImage * BCInflatedImageFromResponseWithDataAtScale(NSHTTPURLResponse *r
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCCompoundResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPCompoundResponseSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.responseSerializers = self.responseSerializers;
 
     return serializer;

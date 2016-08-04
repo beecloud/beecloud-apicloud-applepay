@@ -8,20 +8,18 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "BCNetworking.h"
-#import "BCPayConstant.h"
-#import "BCPayCache.h"
-//#import "BCPayObject.h"
+#import "BCAPNetworking.h"
+#import "BCApplePayConstant.h"
+#import "BCApplePayCache.h"
 
-
-@interface BCPayUtil : NSObject
+@interface BCUtil : NSObject
 
 /** @name util functions*/
 
 /*!
  A wrapper for AFHTTPRequestOperationManager.
  */
-+ (BCHTTPSessionManager *)getBCHTTPSessionManager;
++ (BCAPHTTPSessionManager *)getBCAPHTTPSessionManager;
 
 /**
  *  Get wrapped parameters in the format of "para" to a map for GET REST APIs.

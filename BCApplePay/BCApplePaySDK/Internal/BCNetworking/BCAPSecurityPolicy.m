@@ -1,4 +1,4 @@
-// BCSecurityPolicy.m
+// BCAPSecurityPolicy.m
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,12 +19,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "BCSecurityPolicy.h"
+#import "BCAPSecurityPolicy.h"
 
 #import <AssertMacros.h>
 
 #if !TARGET_OS_IOS && !TARGET_OS_WATCH && !TARGET_OS_TV
-static NSData * BCSecKeyGetData(SecKeyRef key) {
+static NSData * BCAPSecKeyGetData(SecKeyRef key) {
     CFDataRef data = NULL;
 
     __Require_noErr_Quiet(SecItemExport(key, kSecFormatUnknown, kSecItemPemArmour, NULL, &data), _out);
@@ -40,15 +40,15 @@ _out:
 }
 #endif
 
-static BOOL BCSecKeyIsEqualToKey(SecKeyRef key1, SecKeyRef key2) {
+static BOOL BCAPSecKeyIsEqualToKey(SecKeyRef key1, SecKeyRef key2) {
 #if TARGET_OS_IOS || TARGET_OS_WATCH || TARGET_OS_TV
     return [(__bridge id)key1 isEqual:(__bridge id)key2];
 #else
-    return [BCSecKeyGetData(key1) isEqual:BCSecKeyGetData(key2)];
+    return [BCAPSecKeyGetData(key1) isEqual:BCAPSecKeyGetData(key2)];
 #endif
 }
 
-static id BCPublicKeyForCertificate(NSData *certificate) {
+static id BCAPPublicKeyForCertificate(NSData *certificate) {
     id allowedPublicKey = nil;
     SecCertificateRef allowedCertificate;
     SecCertificateRef allowedCertificates[1];
@@ -89,7 +89,7 @@ _out:
     return allowedPublicKey;
 }
 
-static BOOL BCServerTrustIsValid(SecTrustRef serverTrust) {
+static BOOL BCAPServerTrustIsValid(SecTrustRef serverTrust) {
     BOOL isValid = NO;
     SecTrustResultType result;
     __Require_noErr_Quiet(SecTrustEvaluate(serverTrust, &result), _out);
@@ -100,7 +100,7 @@ _out:
     return isValid;
 }
 
-static NSArray * BCCertificateTrustChainForServerTrust(SecTrustRef serverTrust) {
+static NSArray * BCAPCertificateTrustChainForServerTrust(SecTrustRef serverTrust) {
     CFIndex certificateCount = SecTrustGetCertificateCount(serverTrust);
     NSMutableArray *trustChain = [NSMutableArray arrayWithCapacity:(NSUInteger)certificateCount];
 
@@ -112,7 +112,7 @@ static NSArray * BCCertificateTrustChainForServerTrust(SecTrustRef serverTrust) 
     return [NSArray arrayWithArray:trustChain];
 }
 
-static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
+static NSArray * BCAPPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
     SecPolicyRef policy = SecPolicyCreateBasicX509();
     CFIndex certificateCount = SecTrustGetCertificateCount(serverTrust);
     NSMutableArray *trustChain = [NSMutableArray arrayWithCapacity:(NSUInteger)certificateCount];
@@ -148,12 +148,12 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 
 #pragma mark -
 
-@interface BCSecurityPolicy()
-@property (readwrite, nonatomic, assign) BCSSLPinningMode SSLPinningMode;
+@interface BCAPSecurityPolicy()
+@property (readwrite, nonatomic, assign) BCAPSSLPinningMode SSLPinningMode;
 @property (readwrite, nonatomic, strong) NSSet *pinnedPublicKeys;
 @end
 
-@implementation BCSecurityPolicy
+@implementation BCAPSecurityPolicy
 
 + (NSSet *)certificatesInBundle:(NSBundle *)bundle {
     NSArray *paths = [bundle pathsForResourcesOfType:@"cer" inDirectory:@"."];
@@ -179,18 +179,18 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 }
 
 + (instancetype)defaultPolicy {
-    BCSecurityPolicy *securityPolicy = [[self alloc] init];
-    securityPolicy.SSLPinningMode = BCSSLPinningModeNone;
+    BCAPSecurityPolicy *securityPolicy = [[self alloc] init];
+    securityPolicy.SSLPinningMode = BCAPSSLPinningModeNone;
 
     return securityPolicy;
 }
 
-+ (instancetype)policyWithPinningMode:(BCSSLPinningMode)pinningMode {
++ (instancetype)policyWithPinningMode:(BCAPSSLPinningMode)pinningMode {
     return [self policyWithPinningMode:pinningMode withPinnedCertificates:[self defaultPinnedCertificates]];
 }
 
-+ (instancetype)policyWithPinningMode:(BCSSLPinningMode)pinningMode withPinnedCertificates:(NSSet *)pinnedCertificates {
-    BCSecurityPolicy *securityPolicy = [[self alloc] init];
++ (instancetype)policyWithPinningMode:(BCAPSSLPinningMode)pinningMode withPinnedCertificates:(NSSet *)pinnedCertificates {
+    BCAPSecurityPolicy *securityPolicy = [[self alloc] init];
     securityPolicy.SSLPinningMode = pinningMode;
 
     [securityPolicy setPinnedCertificates:pinnedCertificates];
@@ -215,7 +215,7 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
     if (self.pinnedCertificates) {
         NSMutableSet *mutablePinnedPublicKeys = [NSMutableSet setWithCapacity:[self.pinnedCertificates count]];
         for (NSData *certificate in self.pinnedCertificates) {
-            id publicKey = BCPublicKeyForCertificate(certificate);
+            id publicKey = BCAPPublicKeyForCertificate(certificate);
             if (!publicKey) {
                 continue;
             }
@@ -232,7 +232,7 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 - (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust
                   forDomain:(NSString *)domain
 {
-    if (domain && self.allowInvalidCertificates && self.validatesDomainName && (self.SSLPinningMode == BCSSLPinningModeNone || [self.pinnedCertificates count] == 0)) {
+    if (domain && self.allowInvalidCertificates && self.validatesDomainName && (self.SSLPinningMode == BCAPSSLPinningModeNone || [self.pinnedCertificates count] == 0)) {
         // https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
         //  According to the docs, you should only trust your provided certs for evaluation.
         //  Pinned certificates are added to the trust. Without pinned certificates,
@@ -254,29 +254,29 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 
     SecTrustSetPolicies(serverTrust, (__bridge CFArrayRef)policies);
 
-    if (self.SSLPinningMode == BCSSLPinningModeNone) {
-        return self.allowInvalidCertificates || BCServerTrustIsValid(serverTrust);
-    } else if (!BCServerTrustIsValid(serverTrust) && !self.allowInvalidCertificates) {
+    if (self.SSLPinningMode == BCAPSSLPinningModeNone) {
+        return self.allowInvalidCertificates || BCAPServerTrustIsValid(serverTrust);
+    } else if (!BCAPServerTrustIsValid(serverTrust) && !self.allowInvalidCertificates) {
         return NO;
     }
 
     switch (self.SSLPinningMode) {
-        case BCSSLPinningModeNone:
+        case BCAPSSLPinningModeNone:
         default:
             return NO;
-        case BCSSLPinningModeCertificate: {
+        case BCAPSSLPinningModeCertificate: {
             NSMutableArray *pinnedCertificates = [NSMutableArray array];
             for (NSData *certificateData in self.pinnedCertificates) {
                 [pinnedCertificates addObject:(__bridge_transfer id)SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certificateData)];
             }
             SecTrustSetAnchorCertificates(serverTrust, (__bridge CFArrayRef)pinnedCertificates);
 
-            if (!BCServerTrustIsValid(serverTrust)) {
+            if (!BCAPServerTrustIsValid(serverTrust)) {
                 return NO;
             }
 
-            // obtain the chain BCter being validated, which *should* contain the pinned certificate in the last position (if it's the Root CA)
-            NSArray *serverCertificates = BCCertificateTrustChainForServerTrust(serverTrust);
+            // obtain the chain BCAPter being validated, which *should* contain the pinned certificate in the last position (if it's the Root CA)
+            NSArray *serverCertificates = BCAPCertificateTrustChainForServerTrust(serverTrust);
             
             for (NSData *trustChainCertificate in [serverCertificates reverseObjectEnumerator]) {
                 if ([self.pinnedCertificates containsObject:trustChainCertificate]) {
@@ -286,13 +286,13 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
             
             return NO;
         }
-        case BCSSLPinningModePublicKey: {
+        case BCAPSSLPinningModePublicKey: {
             NSUInteger trustedPublicKeyCount = 0;
-            NSArray *publicKeys = BCPublicKeyTrustChainForServerTrust(serverTrust);
+            NSArray *publicKeys = BCAPPublicKeyTrustChainForServerTrust(serverTrust);
 
             for (id trustChainPublicKey in publicKeys) {
                 for (id pinnedPublicKey in self.pinnedPublicKeys) {
-                    if (BCSecKeyIsEqualToKey((__bridge SecKeyRef)trustChainPublicKey, (__bridge SecKeyRef)pinnedPublicKey)) {
+                    if (BCAPSecKeyIsEqualToKey((__bridge SecKeyRef)trustChainPublicKey, (__bridge SecKeyRef)pinnedPublicKey)) {
                         trustedPublicKeyCount += 1;
                     }
                 }
@@ -306,7 +306,7 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 
 #pragma mark - NSKeyValueObserving
 
-+ (NSSet *)keyPathsForValuesBCfectingPinnedPublicKeys {
++ (NSSet *)keyPathsForValuesBCAPfectingPinnedPublicKeys {
     return [NSSet setWithObject:@"pinnedCertificates"];
 }
 
@@ -341,7 +341,7 @@ static NSArray * BCPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCSecurityPolicy *securityPolicy = [[[self class] allocWithZone:zone] init];
+    BCAPSecurityPolicy *securityPolicy = [[[self class] allocWithZone:zone] init];
     securityPolicy.SSLPinningMode = self.SSLPinningMode;
     securityPolicy.allowInvalidCertificates = self.allowInvalidCertificates;
     securityPolicy.validatesDomainName = self.validatesDomainName;

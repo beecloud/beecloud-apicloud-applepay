@@ -1,4 +1,4 @@
-// BCURLRequestSerialization.m
+// BCAPURLRequestSerialization.m
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "BCURLRequestSerialization.h"
+#import "BCAPURLRequestSerialization.h"
 
 #if TARGET_OS_IOS || TARGET_OS_WATCH || TARGET_OS_TV
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -27,10 +27,10 @@
 #import <CoreServices/CoreServices.h>
 #endif
 
-NSString * const BCURLRequestSerializationErrorDomain = @"com.alamofire.error.serialization.request";
-NSString * const BCNetworkingOperationFailingURLRequestErrorKey = @"com.alamofire.serialization.request.error.response";
+NSString * const BCAPURLRequestSerializationErrorDomain = @"com.alamofire.error.serialization.request";
+NSString * const BCAPNetworkingOperationFailingURLRequestErrorKey = @"com.alamofire.serialization.request.error.response";
 
-typedef NSString * (^BCQueryStringSerializationBlock)(NSURLRequest *request, id parameters, NSError *__autoreleasing *error);
+typedef NSString * (^BCAPQueryStringSerializationBlock)(NSURLRequest *request, id parameters, NSError *__autoreleasing *error);
 
 /**
  Returns a percent-escaped string following RFC 3986 for a query string key or value.
@@ -44,14 +44,14 @@ typedef NSString * (^BCQueryStringSerializationBlock)(NSURLRequest *request, id 
     - parameter string: The string to be percent-escaped.
     - returns: The percent-escaped string.
  */
-NSString * BCPercentEscapedStringFromString(NSString *string) {
-    static NSString * const kBCCharactersGeneralDelimitersToEncode = @":#[]@"; // does not include "?" or "/" due to RFC 3986 - Section 3.4
-    static NSString * const kBCCharactersSubDelimitersToEncode = @"!$&'()*+,;=";
+NSString * BCAPPercentEscapedStringFromString(NSString *string) {
+    static NSString * const kBCAPCharactersGeneralDelimitersToEncode = @":#[]@"; // does not include "?" or "/" due to RFC 3986 - Section 3.4
+    static NSString * const kBCAPCharactersSubDelimitersToEncode = @"!$&'()*+,;=";
 
     NSMutableCharacterSet * allowedCharacterSet = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
-    [allowedCharacterSet removeCharactersInString:[kBCCharactersGeneralDelimitersToEncode stringByAppendingString:kBCCharactersSubDelimitersToEncode]];
+    [allowedCharacterSet removeCharactersInString:[kBCAPCharactersGeneralDelimitersToEncode stringByAppendingString:kBCAPCharactersSubDelimitersToEncode]];
 
-	// FIXME: https://github.com/BCNetworking/BCNetworking/pull/3028
+	// FIXME: https://github.com/BCAPNetworking/BCAPNetworking/pull/3028
     // return [string stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
 
     static NSUInteger const batchSize = 50;
@@ -81,7 +81,7 @@ NSString * BCPercentEscapedStringFromString(NSString *string) {
 
 #pragma mark -
 
-@interface BCQueryStringPair : NSObject
+@interface BCAPQueryStringPair : NSObject
 @property (readwrite, nonatomic, strong) id field;
 @property (readwrite, nonatomic, strong) id value;
 
@@ -90,7 +90,7 @@ NSString * BCPercentEscapedStringFromString(NSString *string) {
 - (NSString *)URLEncodedStringValue;
 @end
 
-@implementation BCQueryStringPair
+@implementation BCAPQueryStringPair
 
 - (instancetype)initWithField:(id)field value:(id)value {
     self = [super init];
@@ -106,9 +106,9 @@ NSString * BCPercentEscapedStringFromString(NSString *string) {
 
 - (NSString *)URLEncodedStringValue {
     if (!self.value || [self.value isEqual:[NSNull null]]) {
-        return BCPercentEscapedStringFromString([self.field description]);
+        return BCAPPercentEscapedStringFromString([self.field description]);
     } else {
-        return [NSString stringWithFormat:@"%@=%@", BCPercentEscapedStringFromString([self.field description]), BCPercentEscapedStringFromString([self.value description])];
+        return [NSString stringWithFormat:@"%@=%@", BCAPPercentEscapedStringFromString([self.field description]), BCAPPercentEscapedStringFromString([self.value description])];
     }
 }
 
@@ -116,23 +116,23 @@ NSString * BCPercentEscapedStringFromString(NSString *string) {
 
 #pragma mark -
 
-FOUNDATION_EXPORT NSArray * BCQueryStringPairsFromDictionary(NSDictionary *dictionary);
-FOUNDATION_EXPORT NSArray * BCQueryStringPairsFromKeyAndValue(NSString *key, id value);
+FOUNDATION_EXPORT NSArray * BCAPQueryStringPairsFromDictionary(NSDictionary *dictionary);
+FOUNDATION_EXPORT NSArray * BCAPQueryStringPairsFromKeyAndValue(NSString *key, id value);
 
-NSString * BCQueryStringFromParameters(NSDictionary *parameters) {
+NSString * BCAPQueryStringFromParameters(NSDictionary *parameters) {
     NSMutableArray *mutablePairs = [NSMutableArray array];
-    for (BCQueryStringPair *pair in BCQueryStringPairsFromDictionary(parameters)) {
+    for (BCAPQueryStringPair *pair in BCAPQueryStringPairsFromDictionary(parameters)) {
         [mutablePairs addObject:[pair URLEncodedStringValue]];
     }
 
     return [mutablePairs componentsJoinedByString:@"&"];
 }
 
-NSArray * BCQueryStringPairsFromDictionary(NSDictionary *dictionary) {
-    return BCQueryStringPairsFromKeyAndValue(nil, dictionary);
+NSArray * BCAPQueryStringPairsFromDictionary(NSDictionary *dictionary) {
+    return BCAPQueryStringPairsFromKeyAndValue(nil, dictionary);
 }
 
-NSArray * BCQueryStringPairsFromKeyAndValue(NSString *key, id value) {
+NSArray * BCAPQueryStringPairsFromKeyAndValue(NSString *key, id value) {
     NSMutableArray *mutableQueryStringComponents = [NSMutableArray array];
 
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"description" ascending:YES selector:@selector(compare:)];
@@ -143,21 +143,21 @@ NSArray * BCQueryStringPairsFromKeyAndValue(NSString *key, id value) {
         for (id nestedKey in [dictionary.allKeys sortedArrayUsingDescriptors:@[ sortDescriptor ]]) {
             id nestedValue = dictionary[nestedKey];
             if (nestedValue) {
-                [mutableQueryStringComponents addObjectsFromArray:BCQueryStringPairsFromKeyAndValue((key ? [NSString stringWithFormat:@"%@[%@]", key, nestedKey] : nestedKey), nestedValue)];
+                [mutableQueryStringComponents addObjectsFromArray:BCAPQueryStringPairsFromKeyAndValue((key ? [NSString stringWithFormat:@"%@[%@]", key, nestedKey] : nestedKey), nestedValue)];
             }
         }
     } else if ([value isKindOfClass:[NSArray class]]) {
         NSArray *array = value;
         for (id nestedValue in array) {
-            [mutableQueryStringComponents addObjectsFromArray:BCQueryStringPairsFromKeyAndValue([NSString stringWithFormat:@"%@[]", key], nestedValue)];
+            [mutableQueryStringComponents addObjectsFromArray:BCAPQueryStringPairsFromKeyAndValue([NSString stringWithFormat:@"%@[]", key], nestedValue)];
         }
     } else if ([value isKindOfClass:[NSSet class]]) {
         NSSet *set = value;
         for (id obj in [set sortedArrayUsingDescriptors:@[ sortDescriptor ]]) {
-            [mutableQueryStringComponents addObjectsFromArray:BCQueryStringPairsFromKeyAndValue(key, obj)];
+            [mutableQueryStringComponents addObjectsFromArray:BCAPQueryStringPairsFromKeyAndValue(key, obj)];
         }
     } else {
-        [mutableQueryStringComponents addObject:[[BCQueryStringPair alloc] initWithField:key value:value]];
+        [mutableQueryStringComponents addObject:[[BCAPQueryStringPair alloc] initWithField:key value:value]];
     }
 
     return mutableQueryStringComponents;
@@ -165,7 +165,7 @@ NSArray * BCQueryStringPairsFromKeyAndValue(NSString *key, id value) {
 
 #pragma mark -
 
-@interface BCStreamingMultipartFormData : NSObject <BCMultipartFormData>
+@interface BCAPStreamingMultipartFormData : NSObject <BCAPMultipartFormData>
 - (instancetype)initWithURLRequest:(NSMutableURLRequest *)urlRequest
                     stringEncoding:(NSStringEncoding)encoding;
 
@@ -174,26 +174,26 @@ NSArray * BCQueryStringPairsFromKeyAndValue(NSString *key, id value) {
 
 #pragma mark -
 
-static NSArray * BCHTTPRequestSerializerObservedKeyPaths() {
-    static NSArray *_BCHTTPRequestSerializerObservedKeyPaths = nil;
+static NSArray * BCAPHTTPRequestSerializerObservedKeyPaths() {
+    static NSArray *_BCAPHTTPRequestSerializerObservedKeyPaths = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _BCHTTPRequestSerializerObservedKeyPaths = @[NSStringFromSelector(@selector(allowsCellularAccess)), NSStringFromSelector(@selector(cachePolicy)), NSStringFromSelector(@selector(HTTPShouldHandleCookies)), NSStringFromSelector(@selector(HTTPShouldUsePipelining)), NSStringFromSelector(@selector(networkServiceType)), NSStringFromSelector(@selector(timeoutInterval))];
+        _BCAPHTTPRequestSerializerObservedKeyPaths = @[NSStringFromSelector(@selector(allowsCellularAccess)), NSStringFromSelector(@selector(cachePolicy)), NSStringFromSelector(@selector(HTTPShouldHandleCookies)), NSStringFromSelector(@selector(HTTPShouldUsePipelining)), NSStringFromSelector(@selector(networkServiceType)), NSStringFromSelector(@selector(timeoutInterval))];
     });
 
-    return _BCHTTPRequestSerializerObservedKeyPaths;
+    return _BCAPHTTPRequestSerializerObservedKeyPaths;
 }
 
-static void *BCHTTPRequestSerializerObserverContext = &BCHTTPRequestSerializerObserverContext;
+static void *BCAPHTTPRequestSerializerObserverContext = &BCAPHTTPRequestSerializerObserverContext;
 
-@interface BCHTTPRequestSerializer ()
+@interface BCAPHTTPRequestSerializer ()
 @property (readwrite, nonatomic, strong) NSMutableSet *mutableObservedChangedKeyPaths;
 @property (readwrite, nonatomic, strong) NSMutableDictionary *mutableHTTPRequestHeaders;
-@property (readwrite, nonatomic, assign) BCHTTPRequestQueryStringSerializationStyle queryStringSerializationStyle;
-@property (readwrite, nonatomic, copy) BCQueryStringSerializationBlock queryStringSerialization;
+@property (readwrite, nonatomic, assign) BCAPHTTPRequestQueryStringSerializationStyle queryStringSerializationStyle;
+@property (readwrite, nonatomic, copy) BCAPQueryStringSerializationBlock queryStringSerialization;
 @end
 
-@implementation BCHTTPRequestSerializer
+@implementation BCAPHTTPRequestSerializer
 
 + (instancetype)serializer {
     return [[self alloc] init];
@@ -245,9 +245,9 @@ static void *BCHTTPRequestSerializerObserverContext = &BCHTTPRequestSerializerOb
     self.HTTPMethodsEncodingParametersInURI = [NSSet setWithObjects:@"GET", @"HEAD", @"DELETE", nil];
 
     self.mutableObservedChangedKeyPaths = [NSMutableSet set];
-    for (NSString *keyPath in BCHTTPRequestSerializerObservedKeyPaths()) {
+    for (NSString *keyPath in BCAPHTTPRequestSerializerObservedKeyPaths()) {
         if ([self respondsToSelector:NSSelectorFromString(keyPath)]) {
-            [self addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew context:BCHTTPRequestSerializerObserverContext];
+            [self addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew context:BCAPHTTPRequestSerializerObserverContext];
         }
     }
 
@@ -255,9 +255,9 @@ static void *BCHTTPRequestSerializerObserverContext = &BCHTTPRequestSerializerOb
 }
 
 - (void)dealloc {
-    for (NSString *keyPath in BCHTTPRequestSerializerObservedKeyPaths()) {
+    for (NSString *keyPath in BCAPHTTPRequestSerializerObservedKeyPaths()) {
         if ([self respondsToSelector:NSSelectorFromString(keyPath)]) {
-            [self removeObserver:self forKeyPath:keyPath context:BCHTTPRequestSerializerObserverContext];
+            [self removeObserver:self forKeyPath:keyPath context:BCAPHTTPRequestSerializerObserverContext];
         }
     }
 }
@@ -265,7 +265,7 @@ static void *BCHTTPRequestSerializerObserverContext = &BCHTTPRequestSerializerOb
 #pragma mark -
 
 // Workarounds for crashing behavior using Key-Value Observing with XCTest
-// See https://github.com/BCNetworking/BCNetworking/issues/2523
+// See https://github.com/BCAPNetworking/BCAPNetworking/issues/2523
 
 - (void)setAllowsCellularAccess:(BOOL)allowsCellularAccess {
     [self willChangeValueForKey:NSStringFromSelector(@selector(allowsCellularAccess))];
@@ -333,7 +333,7 @@ forHTTPHeaderField:(NSString *)field
 
 #pragma mark -
 
-- (void)setQueryStringSerializationWithStyle:(BCHTTPRequestQueryStringSerializationStyle)style {
+- (void)setQueryStringSerializationWithStyle:(BCAPHTTPRequestQueryStringSerializationStyle)style {
     self.queryStringSerializationStyle = style;
     self.queryStringSerialization = nil;
 }
@@ -359,7 +359,7 @@ forHTTPHeaderField:(NSString *)field
     NSMutableURLRequest *mutableRequest = [[NSMutableURLRequest alloc] initWithURL:url];
     mutableRequest.HTTPMethod = method;
 
-    for (NSString *keyPath in BCHTTPRequestSerializerObservedKeyPaths()) {
+    for (NSString *keyPath in BCAPHTTPRequestSerializerObservedKeyPaths()) {
         if ([self.mutableObservedChangedKeyPaths containsObject:keyPath]) {
             [mutableRequest setValue:[self valueForKeyPath:keyPath] forKey:keyPath];
         }
@@ -373,7 +373,7 @@ forHTTPHeaderField:(NSString *)field
 - (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method
                                               URLString:(NSString *)URLString
                                              parameters:(NSDictionary *)parameters
-                              constructingBodyWithBlock:(void (^)(id <BCMultipartFormData> formData))block
+                              constructingBodyWithBlock:(void (^)(id <BCAPMultipartFormData> formData))block
                                                   error:(NSError *__autoreleasing *)error
 {
     NSParameterAssert(method);
@@ -381,10 +381,10 @@ forHTTPHeaderField:(NSString *)field
 
     NSMutableURLRequest *mutableRequest = [self requestWithMethod:method URLString:URLString parameters:nil error:error];
 
-    __block BCStreamingMultipartFormData *formData = [[BCStreamingMultipartFormData alloc] initWithURLRequest:mutableRequest stringEncoding:NSUTF8StringEncoding];
+    __block BCAPStreamingMultipartFormData *formData = [[BCAPStreamingMultipartFormData alloc] initWithURLRequest:mutableRequest stringEncoding:NSUTF8StringEncoding];
 
     if (parameters) {
-        for (BCQueryStringPair *pair in BCQueryStringPairsFromDictionary(parameters)) {
+        for (BCAPQueryStringPair *pair in BCAPQueryStringPairsFromDictionary(parameters)) {
             NSData *data = nil;
             if ([pair.value isKindOfClass:[NSData class]]) {
                 data = pair.value;
@@ -461,7 +461,7 @@ forHTTPHeaderField:(NSString *)field
     return mutableRequest;
 }
 
-#pragma mark - BCURLRequestSerialization
+#pragma mark - BCAPURLRequestSerialization
 
 - (NSURLRequest *)requestBySerializingRequest:(NSURLRequest *)request
                                withParameters:(id)parameters
@@ -492,8 +492,8 @@ forHTTPHeaderField:(NSString *)field
             }
         } else {
             switch (self.queryStringSerializationStyle) {
-                case BCHTTPRequestQueryStringDefaultStyle:
-                    query = BCQueryStringFromParameters(parameters);
+                case BCAPHTTPRequestQueryStringDefaultStyle:
+                    query = BCAPQueryStringFromParameters(parameters);
                     break;
             }
         }
@@ -520,7 +520,7 @@ forHTTPHeaderField:(NSString *)field
 #pragma mark - NSKeyValueObserving
 
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key {
-    if ([BCHTTPRequestSerializerObservedKeyPaths() containsObject:key]) {
+    if ([BCAPHTTPRequestSerializerObservedKeyPaths() containsObject:key]) {
         return NO;
     }
 
@@ -532,7 +532,7 @@ forHTTPHeaderField:(NSString *)field
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-    if (context == BCHTTPRequestSerializerObserverContext) {
+    if (context == BCAPHTTPRequestSerializerObserverContext) {
         if ([change[NSKeyValueChangeNewKey] isEqual:[NSNull null]]) {
             [self.mutableObservedChangedKeyPaths removeObject:keyPath];
         } else {
@@ -554,7 +554,7 @@ forHTTPHeaderField:(NSString *)field
     }
 
     self.mutableHTTPRequestHeaders = [[decoder decodeObjectOfClass:[NSDictionary class] forKey:NSStringFromSelector(@selector(mutableHTTPRequestHeaders))] mutableCopy];
-    self.queryStringSerializationStyle = (BCHTTPRequestQueryStringSerializationStyle)[[decoder decodeObjectOfClass:[NSNumber class] forKey:NSStringFromSelector(@selector(queryStringSerializationStyle))] unsignedIntegerValue];
+    self.queryStringSerializationStyle = (BCAPHTTPRequestQueryStringSerializationStyle)[[decoder decodeObjectOfClass:[NSNumber class] forKey:NSStringFromSelector(@selector(queryStringSerializationStyle))] unsignedIntegerValue];
 
     return self;
 }
@@ -567,7 +567,7 @@ forHTTPHeaderField:(NSString *)field
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCHTTPRequestSerializer *serializer = [[[self class] allocWithZone:zone] init];
+    BCAPHTTPRequestSerializer *serializer = [[[self class] allocWithZone:zone] init];
     serializer.mutableHTTPRequestHeaders = [self.mutableHTTPRequestHeaders mutableCopyWithZone:zone];
     serializer.queryStringSerializationStyle = self.queryStringSerializationStyle;
     serializer.queryStringSerialization = self.queryStringSerialization;
@@ -579,25 +579,25 @@ forHTTPHeaderField:(NSString *)field
 
 #pragma mark -
 
-static NSString * BCCreateMultipartFormBoundary() {
+static NSString * BCAPCreateMultipartFormBoundary() {
     return [NSString stringWithFormat:@"Boundary+%08X%08X", arc4random(), arc4random()];
 }
 
-static NSString * const kBCMultipartFormCRLF = @"\r\n";
+static NSString * const kBCAPMultipartFormCRLF = @"\r\n";
 
-static inline NSString * BCMultipartFormInitialBoundary(NSString *boundary) {
-    return [NSString stringWithFormat:@"--%@%@", boundary, kBCMultipartFormCRLF];
+static inline NSString * BCAPMultipartFormInitialBoundary(NSString *boundary) {
+    return [NSString stringWithFormat:@"--%@%@", boundary, kBCAPMultipartFormCRLF];
 }
 
-static inline NSString * BCMultipartFormEncapsulationBoundary(NSString *boundary) {
-    return [NSString stringWithFormat:@"%@--%@%@", kBCMultipartFormCRLF, boundary, kBCMultipartFormCRLF];
+static inline NSString * BCAPMultipartFormEncapsulationBoundary(NSString *boundary) {
+    return [NSString stringWithFormat:@"%@--%@%@", kBCAPMultipartFormCRLF, boundary, kBCAPMultipartFormCRLF];
 }
 
-static inline NSString * BCMultipartFormFinalBoundary(NSString *boundary) {
-    return [NSString stringWithFormat:@"%@--%@--%@", kBCMultipartFormCRLF, boundary, kBCMultipartFormCRLF];
+static inline NSString * BCAPMultipartFormFinalBoundary(NSString *boundary) {
+    return [NSString stringWithFormat:@"%@--%@--%@", kBCAPMultipartFormCRLF, boundary, kBCAPMultipartFormCRLF];
 }
 
-static inline NSString * BCContentTypeForPathExtension(NSString *extension) {
+static inline NSString * BCAPContentTypeForPathExtension(NSString *extension) {
     NSString *UTI = (__bridge_transfer NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (__bridge CFStringRef)extension, NULL);
     NSString *contentType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)UTI, kUTTagClassMIMEType);
     if (!contentType) {
@@ -607,10 +607,10 @@ static inline NSString * BCContentTypeForPathExtension(NSString *extension) {
     }
 }
 
-NSUInteger const kBCUploadStream3GSuggestedPacketSize = 1024 * 16;
-NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
+NSUInteger const kBCAPUploadStream3GSuggestedPacketSize = 1024 * 16;
+NSTimeInterval const kBCAPUploadStream3GSuggestedDelay = 0.2;
 
-@interface BCHTTPBodyPart : NSObject
+@interface BCAPHTTPBodyPart : NSObject
 @property (nonatomic, assign) NSStringEncoding stringEncoding;
 @property (nonatomic, strong) NSDictionary *headers;
 @property (nonatomic, copy) NSString *boundary;
@@ -628,7 +628,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
         maxLength:(NSUInteger)length;
 @end
 
-@interface BCMultipartBodyStream : NSInputStream <NSStreamDelegate>
+@interface BCAPMultipartBodyStream : NSInputStream <NSStreamDelegate>
 @property (nonatomic, assign) NSUInteger numberOfBytesInPacket;
 @property (nonatomic, assign) NSTimeInterval delay;
 @property (nonatomic, strong) NSInputStream *inputStream;
@@ -637,19 +637,19 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 
 - (instancetype)initWithStringEncoding:(NSStringEncoding)encoding;
 - (void)setInitialAndFinalBoundaries;
-- (void)appendHTTPBodyPart:(BCHTTPBodyPart *)bodyPart;
+- (void)appendHTTPBodyPart:(BCAPHTTPBodyPart *)bodyPart;
 @end
 
 #pragma mark -
 
-@interface BCStreamingMultipartFormData ()
+@interface BCAPStreamingMultipartFormData ()
 @property (readwrite, nonatomic, copy) NSMutableURLRequest *request;
 @property (readwrite, nonatomic, assign) NSStringEncoding stringEncoding;
 @property (readwrite, nonatomic, copy) NSString *boundary;
-@property (readwrite, nonatomic, strong) BCMultipartBodyStream *bodyStream;
+@property (readwrite, nonatomic, strong) BCAPMultipartBodyStream *bodyStream;
 @end
 
-@implementation BCStreamingMultipartFormData
+@implementation BCAPStreamingMultipartFormData
 
 - (instancetype)initWithURLRequest:(NSMutableURLRequest *)urlRequest
                     stringEncoding:(NSStringEncoding)encoding
@@ -661,8 +661,8 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 
     self.request = urlRequest;
     self.stringEncoding = encoding;
-    self.boundary = BCCreateMultipartFormBoundary();
-    self.bodyStream = [[BCMultipartBodyStream alloc] initWithStringEncoding:encoding];
+    self.boundary = BCAPCreateMultipartFormBoundary();
+    self.bodyStream = [[BCAPMultipartBodyStream alloc] initWithStringEncoding:encoding];
 
     return self;
 }
@@ -675,7 +675,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
     NSParameterAssert(name);
 
     NSString *fileName = [fileURL lastPathComponent];
-    NSString *mimeType = BCContentTypeForPathExtension([fileURL pathExtension]);
+    NSString *mimeType = BCAPContentTypeForPathExtension([fileURL pathExtension]);
 
     return [self appendPartWithFileURL:fileURL name:name fileName:fileName mimeType:mimeType error:error];
 }
@@ -692,16 +692,16 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
     NSParameterAssert(mimeType);
 
     if (![fileURL isFileURL]) {
-        NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedStringFromTable(@"Expected URL to be a file URL", @"BCNetworking", nil)};
+        NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedStringFromTable(@"Expected URL to be a file URL", @"BCAPNetworking", nil)};
         if (error) {
-            *error = [[NSError alloc] initWithDomain:BCURLRequestSerializationErrorDomain code:NSURLErrorBadURL userInfo:userInfo];
+            *error = [[NSError alloc] initWithDomain:BCAPURLRequestSerializationErrorDomain code:NSURLErrorBadURL userInfo:userInfo];
         }
 
         return NO;
     } else if ([fileURL checkResourceIsReachableAndReturnError:error] == NO) {
-        NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedStringFromTable(@"File URL not reachable.", @"BCNetworking", nil)};
+        NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedStringFromTable(@"File URL not reachable.", @"BCAPNetworking", nil)};
         if (error) {
-            *error = [[NSError alloc] initWithDomain:BCURLRequestSerializationErrorDomain code:NSURLErrorBadURL userInfo:userInfo];
+            *error = [[NSError alloc] initWithDomain:BCAPURLRequestSerializationErrorDomain code:NSURLErrorBadURL userInfo:userInfo];
         }
 
         return NO;
@@ -716,7 +716,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
     [mutableHeaders setValue:[NSString stringWithFormat:@"form-data; name=\"%@\"; filename=\"%@\"", name, fileName] forKey:@"Content-Disposition"];
     [mutableHeaders setValue:mimeType forKey:@"Content-Type"];
 
-    BCHTTPBodyPart *bodyPart = [[BCHTTPBodyPart alloc] init];
+    BCAPHTTPBodyPart *bodyPart = [[BCAPHTTPBodyPart alloc] init];
     bodyPart.stringEncoding = self.stringEncoding;
     bodyPart.headers = mutableHeaders;
     bodyPart.boundary = self.boundary;
@@ -741,7 +741,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
     [mutableHeaders setValue:[NSString stringWithFormat:@"form-data; name=\"%@\"; filename=\"%@\"", name, fileName] forKey:@"Content-Disposition"];
     [mutableHeaders setValue:mimeType forKey:@"Content-Type"];
 
-    BCHTTPBodyPart *bodyPart = [[BCHTTPBodyPart alloc] init];
+    BCAPHTTPBodyPart *bodyPart = [[BCAPHTTPBodyPart alloc] init];
     bodyPart.stringEncoding = self.stringEncoding;
     bodyPart.headers = mutableHeaders;
     bodyPart.boundary = self.boundary;
@@ -784,7 +784,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 {
     NSParameterAssert(body);
 
-    BCHTTPBodyPart *bodyPart = [[BCHTTPBodyPart alloc] init];
+    BCAPHTTPBodyPart *bodyPart = [[BCAPHTTPBodyPart alloc] init];
     bodyPart.stringEncoding = self.stringEncoding;
     bodyPart.headers = headers;
     bodyPart.boundary = self.boundary;
@@ -825,16 +825,16 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 @property (readwrite, copy) NSError *streamError;
 @end
 
-@interface BCMultipartBodyStream () <NSCopying>
+@interface BCAPMultipartBodyStream () <NSCopying>
 @property (readwrite, nonatomic, assign) NSStringEncoding stringEncoding;
 @property (readwrite, nonatomic, strong) NSMutableArray *HTTPBodyParts;
 @property (readwrite, nonatomic, strong) NSEnumerator *HTTPBodyPartEnumerator;
-@property (readwrite, nonatomic, strong) BCHTTPBodyPart *currentHTTPBodyPart;
+@property (readwrite, nonatomic, strong) BCAPHTTPBodyPart *currentHTTPBodyPart;
 @property (readwrite, nonatomic, strong) NSOutputStream *outputStream;
 @property (readwrite, nonatomic, strong) NSMutableData *buffer;
 @end
 
-@implementation BCMultipartBodyStream
+@implementation BCAPMultipartBodyStream
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wimplicit-atomic-properties"
 #if (defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000) || (defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED >= 1100)
@@ -859,7 +859,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 
 - (void)setInitialAndFinalBoundaries {
     if ([self.HTTPBodyParts count] > 0) {
-        for (BCHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
+        for (BCAPHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
             bodyPart.hasInitialBoundary = NO;
             bodyPart.hasFinalBoundary = NO;
         }
@@ -869,7 +869,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
     }
 }
 
-- (void)appendHTTPBodyPart:(BCHTTPBodyPart *)bodyPart {
+- (void)appendHTTPBodyPart:(BCAPHTTPBodyPart *)bodyPart {
     [self.HTTPBodyParts addObject:bodyPart];
 }
 
@@ -962,7 +962,7 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 
 - (unsigned long long)contentLength {
     unsigned long long length = 0;
-    for (BCHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
+    for (BCAPHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
         length += [bodyPart contentLength];
     }
 
@@ -988,9 +988,9 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCMultipartBodyStream *bodyStreamCopy = [[[self class] allocWithZone:zone] initWithStringEncoding:self.stringEncoding];
+    BCAPMultipartBodyStream *bodyStreamCopy = [[[self class] allocWithZone:zone] initWithStringEncoding:self.stringEncoding];
 
-    for (BCHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
+    for (BCAPHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
         [bodyStreamCopy appendHTTPBodyPart:[bodyPart copy]];
     }
 
@@ -1004,14 +1004,14 @@ NSTimeInterval const kBCUploadStream3GSuggestedDelay = 0.2;
 #pragma mark -
 
 typedef enum {
-    BCEncapsulationBoundaryPhase = 1,
-    BCHeaderPhase                = 2,
-    BCBodyPhase                  = 3,
-    BCFinalBoundaryPhase         = 4,
-} BCHTTPBodyPartReadPhase;
+    BCAPEncapsulationBoundaryPhase = 1,
+    BCAPHeaderPhase                = 2,
+    BCAPBodyPhase                  = 3,
+    BCAPFinalBoundaryPhase         = 4,
+} BCAPHTTPBodyPartReadPhase;
 
-@interface BCHTTPBodyPart () <NSCopying> {
-    BCHTTPBodyPartReadPhase _phase;
+@interface BCAPHTTPBodyPart () <NSCopying> {
+    BCAPHTTPBodyPartReadPhase _phase;
     NSInputStream *_inputStream;
     unsigned long long _phaseReadOffset;
 }
@@ -1022,7 +1022,7 @@ typedef enum {
             maxLength:(NSUInteger)length;
 @end
 
-@implementation BCHTTPBodyPart
+@implementation BCAPHTTPBodyPart
 
 - (instancetype)init {
     self = [super init];
@@ -1061,9 +1061,9 @@ typedef enum {
 - (NSString *)stringForHeaders {
     NSMutableString *headerString = [NSMutableString string];
     for (NSString *field in [self.headers allKeys]) {
-        [headerString appendString:[NSString stringWithFormat:@"%@: %@%@", field, [self.headers valueForKey:field], kBCMultipartFormCRLF]];
+        [headerString appendString:[NSString stringWithFormat:@"%@: %@%@", field, [self.headers valueForKey:field], kBCAPMultipartFormCRLF]];
     }
-    [headerString appendString:kBCMultipartFormCRLF];
+    [headerString appendString:kBCAPMultipartFormCRLF];
 
     return [NSString stringWithString:headerString];
 }
@@ -1071,7 +1071,7 @@ typedef enum {
 - (unsigned long long)contentLength {
     unsigned long long length = 0;
 
-    NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? BCMultipartFormInitialBoundary(self.boundary) : BCMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
+    NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? BCAPMultipartFormInitialBoundary(self.boundary) : BCAPMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
     length += [encapsulationBoundaryData length];
 
     NSData *headersData = [[self stringForHeaders] dataUsingEncoding:self.stringEncoding];
@@ -1079,15 +1079,15 @@ typedef enum {
 
     length += _bodyContentLength;
 
-    NSData *closingBoundaryData = ([self hasFinalBoundary] ? [BCMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
+    NSData *closingBoundaryData = ([self hasFinalBoundary] ? [BCAPMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
     length += [closingBoundaryData length];
 
     return length;
 }
 
 - (BOOL)hasBytesAvailable {
-    // Allows `read:maxLength:` to be called again if `BCMultipartFormFinalBoundary` doesn't fit into the available buffer
-    if (_phase == BCFinalBoundaryPhase) {
+    // Allows `read:maxLength:` to be called again if `BCAPMultipartFormFinalBoundary` doesn't fit into the available buffer
+    if (_phase == BCAPFinalBoundaryPhase) {
         return YES;
     }
 
@@ -1114,17 +1114,17 @@ typedef enum {
 {
     NSInteger totalNumberOfBytesRead = 0;
 
-    if (_phase == BCEncapsulationBoundaryPhase) {
-        NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? BCMultipartFormInitialBoundary(self.boundary) : BCMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
+    if (_phase == BCAPEncapsulationBoundaryPhase) {
+        NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? BCAPMultipartFormInitialBoundary(self.boundary) : BCAPMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
         totalNumberOfBytesRead += [self readData:encapsulationBoundaryData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
     }
 
-    if (_phase == BCHeaderPhase) {
+    if (_phase == BCAPHeaderPhase) {
         NSData *headersData = [[self stringForHeaders] dataUsingEncoding:self.stringEncoding];
         totalNumberOfBytesRead += [self readData:headersData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
     }
 
-    if (_phase == BCBodyPhase) {
+    if (_phase == BCAPBodyPhase) {
         NSInteger numberOfBytesRead = 0;
 
         numberOfBytesRead = [self.inputStream read:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
@@ -1139,8 +1139,8 @@ typedef enum {
         }
     }
 
-    if (_phase == BCFinalBoundaryPhase) {
-        NSData *closingBoundaryData = ([self hasFinalBoundary] ? [BCMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
+    if (_phase == BCAPFinalBoundaryPhase) {
+        NSData *closingBoundaryData = ([self hasFinalBoundary] ? [BCAPMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
         totalNumberOfBytesRead += [self readData:closingBoundaryData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
     }
 
@@ -1177,21 +1177,21 @@ typedef enum {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcovered-switch-default"
     switch (_phase) {
-        case BCEncapsulationBoundaryPhase:
-            _phase = BCHeaderPhase;
+        case BCAPEncapsulationBoundaryPhase:
+            _phase = BCAPHeaderPhase;
             break;
-        case BCHeaderPhase:
+        case BCAPHeaderPhase:
             [self.inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
             [self.inputStream open];
-            _phase = BCBodyPhase;
+            _phase = BCAPBodyPhase;
             break;
-        case BCBodyPhase:
+        case BCAPBodyPhase:
             [self.inputStream close];
-            _phase = BCFinalBoundaryPhase;
+            _phase = BCAPFinalBoundaryPhase;
             break;
-        case BCFinalBoundaryPhase:
+        case BCAPFinalBoundaryPhase:
         default:
-            _phase = BCEncapsulationBoundaryPhase;
+            _phase = BCAPEncapsulationBoundaryPhase;
             break;
     }
     _phaseReadOffset = 0;
@@ -1203,7 +1203,7 @@ typedef enum {
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCHTTPBodyPart *bodyPart = [[[self class] allocWithZone:zone] init];
+    BCAPHTTPBodyPart *bodyPart = [[[self class] allocWithZone:zone] init];
 
     bodyPart.stringEncoding = self.stringEncoding;
     bodyPart.headers = self.headers;
@@ -1218,7 +1218,7 @@ typedef enum {
 
 #pragma mark -
 
-@implementation BCJSONRequestSerializer
+@implementation BCAPJSONRequestSerializer
 
 + (instancetype)serializer {
     return [self serializerWithWritingOptions:(NSJSONWritingOptions)0];
@@ -1226,13 +1226,13 @@ typedef enum {
 
 + (instancetype)serializerWithWritingOptions:(NSJSONWritingOptions)writingOptions
 {
-    BCJSONRequestSerializer *serializer = [[self alloc] init];
+    BCAPJSONRequestSerializer *serializer = [[self alloc] init];
     serializer.writingOptions = writingOptions;
 
     return serializer;
 }
 
-#pragma mark - BCURLRequestSerialization
+#pragma mark - BCAPURLRequestSerialization
 
 - (NSURLRequest *)requestBySerializingRequest:(NSURLRequest *)request
                                withParameters:(id)parameters
@@ -1285,7 +1285,7 @@ typedef enum {
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCJSONRequestSerializer *serializer = [super copyWithZone:zone];
+    BCAPJSONRequestSerializer *serializer = [super copyWithZone:zone];
     serializer.writingOptions = self.writingOptions;
 
     return serializer;
@@ -1295,7 +1295,7 @@ typedef enum {
 
 #pragma mark -
 
-@implementation BCPropertyListRequestSerializer
+@implementation BCAPPropertyListRequestSerializer
 
 + (instancetype)serializer {
     return [self serializerWithFormat:NSPropertyListXMLFormat_v1_0 writeOptions:0];
@@ -1304,14 +1304,14 @@ typedef enum {
 + (instancetype)serializerWithFormat:(NSPropertyListFormat)format
                         writeOptions:(NSPropertyListWriteOptions)writeOptions
 {
-    BCPropertyListRequestSerializer *serializer = [[self alloc] init];
+    BCAPPropertyListRequestSerializer *serializer = [[self alloc] init];
     serializer.format = format;
     serializer.writeOptions = writeOptions;
 
     return serializer;
 }
 
-#pragma mark - BCURLRequestSerializer
+#pragma mark - BCAPURLRequestSerializer
 
 - (NSURLRequest *)requestBySerializingRequest:(NSURLRequest *)request
                                withParameters:(id)parameters
@@ -1366,7 +1366,7 @@ typedef enum {
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCPropertyListRequestSerializer *serializer = [super copyWithZone:zone];
+    BCAPPropertyListRequestSerializer *serializer = [super copyWithZone:zone];
     serializer.format = self.format;
     serializer.writeOptions = self.writeOptions;
 

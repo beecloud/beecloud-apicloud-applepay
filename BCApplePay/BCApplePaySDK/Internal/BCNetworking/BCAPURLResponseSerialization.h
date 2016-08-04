@@ -1,4 +1,4 @@
-// BCURLResponseSerialization.h
+// BCAPURLResponseSerialization.h
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,11 +25,11 @@
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- The `BCURLResponseSerialization` protocol is adopted by an object that decodes data into a more useful object representation, according to details in the server response. Response serializers may additionally perform validation on the incoming response and data.
+ The `BCAPURLResponseSerialization` protocol is adopted by an object that decodes data into a more useful object representation, according to details in the server response. Response serializers may additionally perform validation on the incoming response and data.
 
  For example, a JSON response serializer may check for an acceptable status code (`2XX` range) and content type (`application/json`), decoding a valid JSON response into an object.
  */
-@protocol BCURLResponseSerialization <NSObject, NSSecureCoding, NSCopying>
+@protocol BCAPURLResponseSerialization <NSObject, NSSecureCoding, NSCopying>
 
 /**
  The response object decoded from the data associated with a specified response.
@@ -49,11 +49,11 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark -
 
 /**
- `BCHTTPResponseSerializer` conforms to the `BCURLRequestSerialization` & `BCURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
+ `BCAPHTTPResponseSerializer` conforms to the `BCAPURLRequestSerialization` & `BCAPURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
 
- Any request or response serializer dealing with HTTP is encouraged to subclass `BCHTTPResponseSerializer` in order to ensure consistent default behavior.
+ Any request or response serializer dealing with HTTP is encouraged to subclass `BCAPHTTPResponseSerializer` in order to ensure consistent default behavior.
  */
-@interface BCHTTPResponseSerializer : NSObject <BCURLResponseSerialization>
+@interface BCAPHTTPResponseSerializer : NSObject <BCAPURLResponseSerialization>
 
 - (instancetype)init;
 
@@ -104,15 +104,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 /**
- `BCJSONResponseSerializer` is a subclass of `BCHTTPResponseSerializer` that validates and decodes JSON responses.
+ `BCAPJSONResponseSerializer` is a subclass of `BCAPHTTPResponseSerializer` that validates and decodes JSON responses.
 
- By default, `BCJSONResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
+ By default, `BCAPJSONResponseSerializer` accepts the following MIME types, which includes the official standard, `application/json`, as well as other commonly-used types:
 
  - `application/json`
  - `text/json`
  - `text/javascript`
  */
-@interface BCJSONResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPJSONResponseSerializer : BCAPHTTPResponseSerializer
 
 - (instancetype)init;
 
@@ -138,14 +138,14 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark -
 
 /**
- `BCXMLParserResponseSerializer` is a subclass of `BCHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLParser` objects.
+ `BCAPXMLParserResponseSerializer` is a subclass of `BCAPHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLParser` objects.
 
- By default, `BCXMLParserResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
+ By default, `BCAPXMLParserResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
 
  - `application/xml`
  - `text/xml`
  */
-@interface BCXMLParserResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPXMLParserResponseSerializer : BCAPHTTPResponseSerializer
 
 @end
 
@@ -154,14 +154,14 @@ NS_ASSUME_NONNULL_BEGIN
 #ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
 
 /**
- `BCXMLDocumentResponseSerializer` is a subclass of `BCHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
+ `BCAPXMLDocumentResponseSerializer` is a subclass of `BCAPHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
 
- By default, `BCXMLDocumentResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
+ By default, `BCAPXMLDocumentResponseSerializer` accepts the following MIME types, which includes the official standard, `application/xml`, as well as other commonly-used types:
 
  - `application/xml`
  - `text/xml`
  */
-@interface BCXMLDocumentResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPXMLDocumentResponseSerializer : BCAPHTTPResponseSerializer
 
 - (instancetype)init;
 
@@ -184,13 +184,13 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark -
 
 /**
- `BCPropertyListResponseSerializer` is a subclass of `BCHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
+ `BCAPPropertyListResponseSerializer` is a subclass of `BCAPHTTPResponseSerializer` that validates and decodes XML responses as an `NSXMLDocument` objects.
 
- By default, `BCPropertyListResponseSerializer` accepts the following MIME types:
+ By default, `BCAPPropertyListResponseSerializer` accepts the following MIME types:
 
  - `application/x-plist`
  */
-@interface BCPropertyListResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPPropertyListResponseSerializer : BCAPHTTPResponseSerializer
 
 - (instancetype)init;
 
@@ -218,9 +218,9 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark -
 
 /**
- `BCImageResponseSerializer` is a subclass of `BCHTTPResponseSerializer` that validates and decodes image responses.
+ `BCAPImageResponseSerializer` is a subclass of `BCAPHTTPResponseSerializer` that validates and decodes image responses.
 
- By default, `BCImageResponseSerializer` accepts the following MIME types, which correspond to the image formats supported by UIImage or NSImage:
+ By default, `BCAPImageResponseSerializer` accepts the following MIME types, which correspond to the image formats supported by UIImage or NSImage:
 
  - `image/tiff`
  - `image/jpeg`
@@ -233,7 +233,7 @@ NS_ASSUME_NONNULL_BEGIN
  - `image/x-xbitmap`
  - `image/x-win-bitmap`
  */
-@interface BCImageResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPImageResponseSerializer : BCAPHTTPResponseSerializer
 
 #if TARGET_OS_IOS || TARGET_OS_TV || TARGET_OS_WATCH
 /**
@@ -252,21 +252,21 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark -
 
 /**
- `BCCompoundSerializer` is a subclass of `BCHTTPResponseSerializer` that delegates the response serialization to the first `BCHTTPResponseSerializer` object that returns an object for `responseObjectForResponse:data:error:`, falling back on the default behavior of `BCHTTPResponseSerializer`. This is useful for supporting multiple potential types and structures of server responses with a single serializer.
+ `BCAPCompoundSerializer` is a subclass of `BCAPHTTPResponseSerializer` that delegates the response serialization to the first `BCAPHTTPResponseSerializer` object that returns an object for `responseObjectForResponse:data:error:`, falling back on the default behavior of `BCAPHTTPResponseSerializer`. This is useful for supporting multiple potential types and structures of server responses with a single serializer.
  */
-@interface BCCompoundResponseSerializer : BCHTTPResponseSerializer
+@interface BCAPCompoundResponseSerializer : BCAPHTTPResponseSerializer
 
 /**
  The component response serializers.
  */
-@property (readonly, nonatomic, copy) NSArray <id<BCURLResponseSerialization>> *responseSerializers;
+@property (readonly, nonatomic, copy) NSArray <id<BCAPURLResponseSerialization>> *responseSerializers;
 
 /**
  Creates and returns a compound serializer comprised of the specified response serializers.
 
- @warning Each response serializer specified must be a subclass of `BCHTTPResponseSerializer`, and response to `-validateResponse:data:error:`.
+ @warning Each response serializer specified must be a subclass of `BCAPHTTPResponseSerializer`, and response to `-validateResponse:data:error:`.
  */
-+ (instancetype)compoundSerializerWithResponseSerializers:(NSArray <id<BCURLResponseSerialization>> *)responseSerializers;
++ (instancetype)compoundSerializerWithResponseSerializers:(NSArray <id<BCAPURLResponseSerialization>> *)responseSerializers;
 
 @end
 
@@ -279,33 +279,33 @@ NS_ASSUME_NONNULL_BEGIN
 
  The following error domain is predefined.
 
- - `NSString * const BCURLResponseSerializationErrorDomain`
+ - `NSString * const BCAPURLResponseSerializationErrorDomain`
 
  ### Constants
 
- `BCURLResponseSerializationErrorDomain`
- BCURLResponseSerializer errors. Error codes for `BCURLResponseSerializationErrorDomain` correspond to codes in `NSURLErrorDomain`.
+ `BCAPURLResponseSerializationErrorDomain`
+ BCAPURLResponseSerializer errors. Error codes for `BCAPURLResponseSerializationErrorDomain` correspond to codes in `NSURLErrorDomain`.
  */
-FOUNDATION_EXPORT NSString * const BCURLResponseSerializationErrorDomain;
+FOUNDATION_EXPORT NSString * const BCAPURLResponseSerializationErrorDomain;
 
 /**
  ## User info dictionary keys
 
  These keys may exist in the user info dictionary, in addition to those defined for NSError.
 
- - `NSString * const BCNetworkingOperationFailingURLResponseErrorKey`
- - `NSString * const BCNetworkingOperationFailingURLResponseDataErrorKey`
+ - `NSString * const BCAPNetworkingOperationFailingURLResponseErrorKey`
+ - `NSString * const BCAPNetworkingOperationFailingURLResponseDataErrorKey`
 
  ### Constants
 
- `BCNetworkingOperationFailingURLResponseErrorKey`
- The corresponding value is an `NSURLResponse` containing the response of the operation associated with an error. This key is only present in the `BCURLResponseSerializationErrorDomain`.
+ `BCAPNetworkingOperationFailingURLResponseErrorKey`
+ The corresponding value is an `NSURLResponse` containing the response of the operation associated with an error. This key is only present in the `BCAPURLResponseSerializationErrorDomain`.
 
- `BCNetworkingOperationFailingURLResponseDataErrorKey`
- The corresponding value is an `NSData` containing the original data of the operation associated with an error. This key is only present in the `BCURLResponseSerializationErrorDomain`.
+ `BCAPNetworkingOperationFailingURLResponseDataErrorKey`
+ The corresponding value is an `NSData` containing the original data of the operation associated with an error. This key is only present in the `BCAPURLResponseSerializationErrorDomain`.
  */
-FOUNDATION_EXPORT NSString * const BCNetworkingOperationFailingURLResponseErrorKey;
+FOUNDATION_EXPORT NSString * const BCAPNetworkingOperationFailingURLResponseErrorKey;
 
-FOUNDATION_EXPORT NSString * const BCNetworkingOperationFailingURLResponseDataErrorKey;
+FOUNDATION_EXPORT NSString * const BCAPNetworkingOperationFailingURLResponseDataErrorKey;
 
 NS_ASSUME_NONNULL_END

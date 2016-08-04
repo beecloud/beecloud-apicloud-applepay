@@ -6,17 +6,17 @@
 //  Copyright (c) 2014 BeeCloud Inc. All rights reserved.
 //
 
-#import "BCPayCache.h"
+#import "BCApplePayCache.h"
 
-#import "BCPayConstant.h"
+#import "BCApplePayConstant.h"
 
-@implementation BCPayCache
+@implementation BCApplePayCache
 
 + (instancetype)sharedInstance {
     static dispatch_once_t onceToken;
-    static BCPayCache *instance = nil;
+    static BCApplePayCache *instance = nil;
     dispatch_once(&onceToken, ^{
-        instance = [[BCPayCache alloc] init];
+        instance = [[BCApplePayCache alloc] init];
         
         instance.appId = nil;
         instance.sandbox = NO;
@@ -26,10 +26,6 @@
         
     });
     return instance;
-}
-
-+ (BOOL)currentMode {
-    return [BCPayCache sharedInstance].sandbox;
 }
 
 @end

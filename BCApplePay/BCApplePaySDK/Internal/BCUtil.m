@@ -6,17 +6,17 @@
 //  Copyright (c) 2015年 BeeCloud. All rights reserved.
 //
 
-#import "BCPayUtil.h"
+#import "BCUtil.h"
 #import <CommonCrypto/CommonDigest.h>
-#import "BCPayCache.h"
+#import "BCApplePayCache.h"
 #import "NSString+IsValid.h"
 
-@implementation BCPayUtil
+@implementation BCUtil
 
-+ (BCHTTPSessionManager *)getBCHTTPSessionManager {
-    BCHTTPSessionManager *manager = [BCHTTPSessionManager manager];
++ (BCAPHTTPSessionManager *)getBCAPHTTPSessionManager {
+    BCAPHTTPSessionManager *manager = [BCAPHTTPSessionManager manager];
     manager.securityPolicy.allowInvalidCertificates = NO;
-    manager.requestSerializer = [BCJSONRequestSerializer serializer];
+    manager.requestSerializer = [BCAPJSONRequestSerializer serializer];
     return manager;
 }
 
@@ -31,8 +31,8 @@
 
 + (NSMutableDictionary *)prepareParametersForPay {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if([BCPayCache sharedInstance].appId.isValid) {
-        [parameters setObject:[BCPayCache sharedInstance].appId forKey:@"app_id"];
+    if([BCApplePayCache sharedInstance].appId.isValid) {
+        [parameters setObject:[BCApplePayCache sharedInstance].appId forKey:@"app_id"];
         return parameters;
     }
     return nil;
@@ -40,7 +40,7 @@
 
 + (NSString *)getBestHostWithFormat:(NSString *)format {
     NSString *verHost = [NSString stringWithFormat:@"%@%@",kBCHost,reqApiVersion];
-    return [NSString stringWithFormat:format, verHost, [BCPayCache currentMode] ? @"/sandbox" : @""];
+    return [NSString stringWithFormat:format, verHost];
 }
 
 + (BCPayUrlType)getUrlType:(NSURL *)url {
@@ -61,7 +61,7 @@
 }
 
 + (NSString *)millisecondToDateString:(long long)millisecond {
-    return [BCPayUtil dateToString:[BCPayUtil millisecondToDate:millisecond]];
+    return [BCUtil dateToString:[BCUtil millisecondToDate:millisecond]];
 }
 
 + (long long)dateToMillisecond:(NSDate *)date {
@@ -70,8 +70,8 @@
 }
 
 + (long long)dateStringToMillisencond:(NSString *)string {
-    NSDate *dat = [BCPayUtil stringToDate:string];
-    if (dat) return [BCPayUtil dateToMillisecond:dat];
+    NSDate *dat = [BCUtil stringToDate:string];
+    if (dat) return [BCUtil dateToMillisecond:dat];
     return 0;
 }
 
@@ -123,11 +123,11 @@
 + (BOOL)isValidIdentifier:(NSString *)str {
     if (str == nil || str.length == 0) return NO;
     // First letter not a letter.
-    if (![BCPayUtil isLetter:[str characterAtIndex:0]]) return NO;
+    if (![BCUtil isLetter:[str characterAtIndex:0]]) return NO;
     for (NSUInteger i = 1; i < str.length; i++) {
         unichar ch = [str characterAtIndex:i];
         // Invalid character.
-        if (![BCPayUtil isLetter:ch] && ![BCPayUtil isDigit:ch] && ch != '_') return NO;
+        if (![BCUtil isLetter:ch] && ![BCUtil isDigit:ch] && ch != '_') return NO;
     }
     // Identifier ending with "__" is reserved.
     if ([str hasSuffix:@"__"]) return NO;
@@ -142,7 +142,7 @@
             if (ch != '-')
                 return NO;
         } else {
-            if (!([BCPayUtil isDigit:ch] || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')))
+            if (!([BCUtil isDigit:ch] || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')))
                 return NO;
         }
     }
@@ -150,11 +150,11 @@
 }
 
 + (BOOL)isValidTraceNo:(NSString *)str {
-    if (![BCPayUtil isValidString:str]) return NO;
+    if (![BCUtil isValidString:str]) return NO;
     for (NSUInteger i = 0; i < str.length; i++) {
         unichar ch = [str characterAtIndex:i];
         // Invalid character.
-        if (![BCPayUtil isLetter:ch] && ![BCPayUtil isDigit:ch]) return NO;
+        if (![BCUtil isLetter:ch] && ![BCUtil isDigit:ch]) return NO;
     }
     return YES;
 }
@@ -178,7 +178,7 @@
 }
 
 + (NSUInteger)getBytes:(NSString *)str {
-    if (![BCPayUtil isValidString:str]) {
+    if (![BCUtil isValidString:str]) {
         return 0;
     } else {
         NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
@@ -189,11 +189,3 @@
 
 @end
 
-void BCPayLog(NSString *format,...) {
-    if ([BCPayCache sharedInstance].willPrintLogMsg) {
-        va_list list;
-        va_start(list,format);
-        NSLogv(format, list);
-        va_end(list);
-    }
-}

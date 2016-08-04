@@ -1,4 +1,4 @@
-// BCHTTPSessionManager.m
+// BCAPHTTPSessionManager.m
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,10 +19,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "BCHTTPSessionManager.h"
+#import "BCAPHTTPSessionManager.h"
 
-#import "BCURLRequestSerialization.h"
-#import "BCURLResponseSerialization.h"
+#import "BCAPURLRequestSerialization.h"
+#import "BCAPURLResponseSerialization.h"
 
 #import <Availability.h>
 #import <TargetConditionals.h>
@@ -40,11 +40,11 @@
 #import <WatchKit/WatchKit.h>
 #endif
 
-@interface BCHTTPSessionManager ()
+@interface BCAPHTTPSessionManager ()
 @property (readwrite, nonatomic, strong) NSURL *baseURL;
 @end
 
-@implementation BCHTTPSessionManager
+@implementation BCAPHTTPSessionManager
 @dynamic responseSerializer;
 
 + (instancetype)manager {
@@ -78,21 +78,21 @@
 
     self.baseURL = url;
 
-    self.requestSerializer = [BCHTTPRequestSerializer serializer];
-    self.responseSerializer = [BCJSONResponseSerializer serializer];
+    self.requestSerializer = [BCAPHTTPRequestSerializer serializer];
+    self.responseSerializer = [BCAPJSONResponseSerializer serializer];
 
     return self;
 }
 
 #pragma mark -
 
-- (void)setRequestSerializer:(BCHTTPRequestSerializer <BCURLRequestSerialization> *)requestSerializer {
+- (void)setRequestSerializer:(BCAPHTTPRequestSerializer <BCAPURLRequestSerialization> *)requestSerializer {
     NSParameterAssert(requestSerializer);
 
     _requestSerializer = requestSerializer;
 }
 
-- (void)setResponseSerializer:(BCHTTPResponseSerializer <BCURLResponseSerialization> *)responseSerializer {
+- (void)setResponseSerializer:(BCAPHTTPResponseSerializer <BCAPURLResponseSerialization> *)responseSerializer {
     NSParameterAssert(responseSerializer);
 
     [super setResponseSerializer:responseSerializer];
@@ -168,7 +168,7 @@
 
 - (NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(nullable id)parameters
-     constructingBodyWithBlock:(nullable void (^)(id<BCMultipartFormData> _Nonnull))block
+     constructingBodyWithBlock:(nullable void (^)(id<BCAPMultipartFormData> _Nonnull))block
                        success:(nullable void (^)(NSURLSessionDataTask * _Nonnull, id _Nullable))success
                        failure:(nullable void (^)(NSURLSessionDataTask * _Nullable, NSError * _Nonnull))failure
 {
@@ -177,7 +177,7 @@
 
 - (NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(id)parameters
-     constructingBodyWithBlock:(void (^)(id <BCMultipartFormData> formData))block
+     constructingBodyWithBlock:(void (^)(id <BCAPMultipartFormData> formData))block
                       progress:(nullable void (^)(NSProgress * _Nonnull))uploadProgress
                        success:(void (^)(NSURLSessionDataTask *task, id responseObject))success
                        failure:(void (^)(NSURLSessionDataTask *task, NSError *error))failure
@@ -323,9 +323,9 @@
         return nil;
     }
 
-    self.requestSerializer = [decoder decodeObjectOfClass:[BCHTTPRequestSerializer class] forKey:NSStringFromSelector(@selector(requestSerializer))];
-    self.responseSerializer = [decoder decodeObjectOfClass:[BCHTTPResponseSerializer class] forKey:NSStringFromSelector(@selector(responseSerializer))];
-    BCSecurityPolicy *decodedPolicy = [decoder decodeObjectOfClass:[BCSecurityPolicy class] forKey:NSStringFromSelector(@selector(securityPolicy))];
+    self.requestSerializer = [decoder decodeObjectOfClass:[BCAPHTTPRequestSerializer class] forKey:NSStringFromSelector(@selector(requestSerializer))];
+    self.responseSerializer = [decoder decodeObjectOfClass:[BCAPHTTPResponseSerializer class] forKey:NSStringFromSelector(@selector(responseSerializer))];
+    BCAPSecurityPolicy *decodedPolicy = [decoder decodeObjectOfClass:[BCAPSecurityPolicy class] forKey:NSStringFromSelector(@selector(securityPolicy))];
     if (decodedPolicy) {
         self.securityPolicy = decodedPolicy;
     }
@@ -350,7 +350,7 @@
 #pragma mark - NSCopying
 
 - (instancetype)copyWithZone:(NSZone *)zone {
-    BCHTTPSessionManager *HTTPClient = [[[self class] allocWithZone:zone] initWithBaseURL:self.baseURL sessionConfiguration:self.session.configuration];
+    BCAPHTTPSessionManager *HTTPClient = [[[self class] allocWithZone:zone] initWithBaseURL:self.baseURL sessionConfiguration:self.session.configuration];
 
     HTTPClient.requestSerializer = [self.requestSerializer copyWithZone:zone];
     HTTPClient.responseSerializer = [self.responseSerializer copyWithZone:zone];

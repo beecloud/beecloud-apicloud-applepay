@@ -1,6 +1,6 @@
-// BCNetworking.h
+// BCAPNetworking.h
 //
-// Copyright (c) 2013 BCNetworking (http://BCnetworking.com/)
+// Copyright (c) 2013 BCAPNetworking (http://BCAPnetworking.com/)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,18 +24,18 @@
 #import <Availability.h>
 #import <TargetConditionals.h>
 
-#ifndef _BCNETWORKING_
-    #define _BCNETWORKING_
+#ifndef _BCAPNETWORKING_
+    #define _BCAPNETWORKING_
 
-    #import "BCURLRequestSerialization.h"
-    #import "BCURLResponseSerialization.h"
-    #import "BCSecurityPolicy.h"
+    #import "BCAPURLRequestSerialization.h"
+    #import "BCAPURLResponseSerialization.h"
+    #import "BCAPSecurityPolicy.h"
 
 #if !TARGET_OS_WATCH
-    #import "BCNetworkReachabilityManager.h"
+    #import "BCAPNetworkReachabilityManager.h"
 #endif
 
-    #import "BCURLSessionManager.h"
-    #import "BCHTTPSessionManager.h"
+    #import "BCAPURLSessionManager.h"
+    #import "BCAPHTTPSessionManager.h"
 
-#endif /* _BCNETWORKING_ */
+#endif /* _BCAPNETWORKING_ */

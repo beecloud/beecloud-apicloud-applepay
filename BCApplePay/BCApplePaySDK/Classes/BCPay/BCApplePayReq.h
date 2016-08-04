@@ -7,13 +7,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BCBaseReq.h"
+#import <Foundation/Foundation.h>
+#import "BCPayConstant.h"
 
 #pragma mark BCPayReq
 /**
  *  Pay Request请求结构体
  */
-@interface BCPayReq : BCBaseReq //type=101
+@interface BCPayReq : NSObject //type=101
+
+@property (nonatomic, assign) BCObjsType type;//100
 /**
  *  支付渠道(WX,Ali,Union)
  */

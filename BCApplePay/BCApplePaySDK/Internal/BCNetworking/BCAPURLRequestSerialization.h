@@ -1,4 +1,4 @@
-// BCURLRequestSerialization.h
+// BCAPURLRequestSerialization.h
 // Copyright (c) 2011–2016 Alamofire Software Foundation ( http://alamofire.org/ )
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
  
  @return The percent-escaped string.
  */
-FOUNDATION_EXPORT NSString * BCPercentEscapedStringFromString(NSString *string);
+FOUNDATION_EXPORT NSString * BCAPPercentEscapedStringFromString(NSString *string);
 
 /**
  A helper method to generate encoded url query parameters for appending to the end of a URL.
@@ -53,14 +53,14 @@ FOUNDATION_EXPORT NSString * BCPercentEscapedStringFromString(NSString *string);
 
  @return A url encoded query string
  */
-FOUNDATION_EXPORT NSString * BCQueryStringFromParameters(NSDictionary *parameters);
+FOUNDATION_EXPORT NSString * BCAPQueryStringFromParameters(NSDictionary *parameters);
 
 /**
- The `BCURLRequestSerialization` protocol is adopted by an object that encodes parameters for a specified HTTP requests. Request serializers may encode parameters as query strings, HTTP bodies, setting the appropriate HTTP header fields as necessary.
+ The `BCAPURLRequestSerialization` protocol is adopted by an object that encodes parameters for a specified HTTP requests. Request serializers may encode parameters as query strings, HTTP bodies, setting the appropriate HTTP header fields as necessary.
 
  For example, a JSON request serializer may set the HTTP body of the request to a JSON representation, and set the `Content-Type` HTTP header field value to `application/json`.
  */
-@protocol BCURLRequestSerialization <NSObject, NSSecureCoding, NSCopying>
+@protocol BCAPURLRequestSerialization <NSObject, NSSecureCoding, NSCopying>
 
 /**
  Returns a request with the specified parameters encoded into a copy of the original request.
@@ -82,18 +82,18 @@ FOUNDATION_EXPORT NSString * BCQueryStringFromParameters(NSDictionary *parameter
 /**
 
  */
-typedef NS_ENUM(NSUInteger, BCHTTPRequestQueryStringSerializationStyle) {
-    BCHTTPRequestQueryStringDefaultStyle = 0,
+typedef NS_ENUM(NSUInteger, BCAPHTTPRequestQueryStringSerializationStyle) {
+    BCAPHTTPRequestQueryStringDefaultStyle = 0,
 };
 
-@protocol BCMultipartFormData;
+@protocol BCAPMultipartFormData;
 
 /**
- `BCHTTPRequestSerializer` conforms to the `BCURLRequestSerialization` & `BCURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
+ `BCAPHTTPRequestSerializer` conforms to the `BCAPURLRequestSerialization` & `BCAPURLResponseSerialization` protocols, offering a concrete base implementation of query string / URL form-encoded parameter serialization and default request headers, as well as response status code and content type validation.
 
- Any request or response serializer dealing with HTTP is encouraged to subclass `BCHTTPRequestSerializer` in order to ensure consistent default behavior.
+ Any request or response serializer dealing with HTTP is encouraged to subclass `BCAPHTTPRequestSerializer` in order to ensure consistent default behavior.
  */
-@interface BCHTTPRequestSerializer : NSObject <BCURLRequestSerialization>
+@interface BCAPHTTPRequestSerializer : NSObject <BCAPURLRequestSerialization>
 
 /**
  The string encoding used to serialize parameters. `NSUTF8StringEncoding` by default.
@@ -207,9 +207,9 @@ forHTTPHeaderField:(NSString *)field;
 
  @param style The serialization style.
 
- @see BCHTTPRequestQueryStringSerializationStyle
+ @see BCAPHTTPRequestQueryStringSerializationStyle
  */
-- (void)setQueryStringSerializationWithStyle:(BCHTTPRequestQueryStringSerializationStyle)style;
+- (void)setQueryStringSerializationWithStyle:(BCAPHTTPRequestQueryStringSerializationStyle)style;
 
 /**
  Set the a custom method of query string serialization according to the specified block.
@@ -247,7 +247,7 @@ forHTTPHeaderField:(NSString *)field;
  @param method The HTTP method for the request. This parameter must not be `GET` or `HEAD`, or `nil`.
  @param URLString The URL string used to create the request URL.
  @param parameters The parameters to be encoded and set in the request HTTP body.
- @param block A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `BCMultipartFormData` protocol.
+ @param block A block that takes a single argument and appends data to the HTTP body. The block argument is an object adopting the `BCAPMultipartFormData` protocol.
  @param error The error that occurred while constructing the request.
 
  @return An `NSMutableURLRequest` object
@@ -255,7 +255,7 @@ forHTTPHeaderField:(NSString *)field;
 - (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method
                                               URLString:(NSString *)URLString
                                              parameters:(nullable NSDictionary <NSString *, id> *)parameters
-                              constructingBodyWithBlock:(nullable void (^)(id <BCMultipartFormData> formData))block
+                              constructingBodyWithBlock:(nullable void (^)(id <BCAPMultipartFormData> formData))block
                                                   error:(NSError * _Nullable __autoreleasing *)error;
 
 /**
@@ -265,9 +265,9 @@ forHTTPHeaderField:(NSString *)field;
  @param fileURL The file URL to write multipart form contents to.
  @param handler A handler block to execute.
 
- @discussion There is a bug in `NSURLSessionTask` that causes requests to not send a `Content-Length` header when streaming contents from an HTTP body, which is notably problematic when interacting with the Amazon S3 webservice. As a workaround, this method takes a request constructed with `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:error:`, or any other request with an `HTTPBodyStream`, writes the contents to the specified file and returns a copy of the original request with the `HTTPBodyStream` property set to `nil`. From here, the file can either be passed to `BCURLSessionManager -uploadTaskWithRequest:fromFile:progress:completionHandler:`, or have its contents read into an `NSData` that's assigned to the `HTTPBody` property of the request.
+ @discussion There is a bug in `NSURLSessionTask` that causes requests to not send a `Content-Length` header when streaming contents from an HTTP body, which is notably problematic when interacting with the Amazon S3 webservice. As a workaround, this method takes a request constructed with `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:error:`, or any other request with an `HTTPBodyStream`, writes the contents to the specified file and returns a copy of the original request with the `HTTPBodyStream` property set to `nil`. From here, the file can either be passed to `BCAPURLSessionManager -uploadTaskWithRequest:fromFile:progress:completionHandler:`, or have its contents read into an `NSData` that's assigned to the `HTTPBody` property of the request.
 
- @see https://github.com/BCNetworking/BCNetworking/issues/1398
+ @see https://github.com/BCAPNetworking/BCAPNetworking/issues/1398
  */
 - (NSMutableURLRequest *)requestWithMultipartFormRequest:(NSURLRequest *)request
                              writingStreamContentsToFile:(NSURL *)fileURL
@@ -278,9 +278,9 @@ forHTTPHeaderField:(NSString *)field;
 #pragma mark -
 
 /**
- The `BCMultipartFormData` protocol defines the methods supported by the parameter in the block argument of `BCHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:`.
+ The `BCAPMultipartFormData` protocol defines the methods supported by the parameter in the block argument of `BCAPHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:`.
  */
-@protocol BCMultipartFormData
+@protocol BCAPMultipartFormData
 
 /**
  Appends the HTTP header `Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`, followed by the encoded file data and the multipart form boundary.
@@ -365,7 +365,7 @@ forHTTPHeaderField:(NSString *)field;
 /**
  Throttles request bandwidth by limiting the packet size and adding a delay for each chunk read from the upload stream.
 
- When uploading over a 3G or EDGE connection, requests may fail with "request body stream exhausted". Setting a maximum packet size and delay according to the recommended values (`kBCUploadStream3GSuggestedPacketSize` and `kBCUploadStream3GSuggestedDelay`) lowers the risk of the input stream exceeding its allocated bandwidth. Unfortunately, there is no definite way to distinguish between a 3G, EDGE, or LTE connection over `NSURLConnection`. As such, it is not recommended that you throttle bandwidth based solely on network reachability. Instead, you should consider checking for the "request body stream exhausted" in a failure block, and then retrying the request with throttled bandwidth.
+ When uploading over a 3G or EDGE connection, requests may fail with "request body stream exhausted". Setting a maximum packet size and delay according to the recommended values (`kBCAPUploadStream3GSuggestedPacketSize` and `kBCAPUploadStream3GSuggestedDelay`) lowers the risk of the input stream exceeding its allocated bandwidth. Unfortunately, there is no definite way to distinguish between a 3G, EDGE, or LTE connection over `NSURLConnection`. As such, it is not recommended that you throttle bandwidth based solely on network reachability. Instead, you should consider checking for the "request body stream exhausted" in a failure block, and then retrying the request with throttled bandwidth.
 
  @param numberOfBytes Maximum packet size, in number of bytes. The default packet size for an input stream is 16kb.
  @param delay Duration of delay each time a packet is read. By default, no delay is set.
@@ -378,9 +378,9 @@ forHTTPHeaderField:(NSString *)field;
 #pragma mark -
 
 /**
- `BCJSONRequestSerializer` is a subclass of `BCHTTPRequestSerializer` that encodes parameters as JSON using `NSJSONSerialization`, setting the `Content-Type` of the encoded request to `application/json`.
+ `BCAPJSONRequestSerializer` is a subclass of `BCAPHTTPRequestSerializer` that encodes parameters as JSON using `NSJSONSerialization`, setting the `Content-Type` of the encoded request to `application/json`.
  */
-@interface BCJSONRequestSerializer : BCHTTPRequestSerializer
+@interface BCAPJSONRequestSerializer : BCAPHTTPRequestSerializer
 
 /**
  Options for writing the request JSON data from Foundation objects. For possible values, see the `NSJSONSerialization` documentation section "NSJSONWritingOptions". `0` by default.
@@ -399,9 +399,9 @@ forHTTPHeaderField:(NSString *)field;
 #pragma mark -
 
 /**
- `BCPropertyListRequestSerializer` is a subclass of `BCHTTPRequestSerializer` that encodes parameters as JSON using `NSPropertyListSerializer`, setting the `Content-Type` of the encoded request to `application/x-plist`.
+ `BCAPPropertyListRequestSerializer` is a subclass of `BCAPHTTPRequestSerializer` that encodes parameters as JSON using `NSPropertyListSerializer`, setting the `Content-Type` of the encoded request to `application/x-plist`.
  */
-@interface BCPropertyListRequestSerializer : BCHTTPRequestSerializer
+@interface BCAPPropertyListRequestSerializer : BCAPHTTPRequestSerializer
 
 /**
  The property list format. Possible values are described in "NSPropertyListFormat".
@@ -437,28 +437,28 @@ forHTTPHeaderField:(NSString *)field;
 
  The following error domain is predefined.
 
- - `NSString * const BCURLRequestSerializationErrorDomain`
+ - `NSString * const BCAPURLRequestSerializationErrorDomain`
 
  ### Constants
 
- `BCURLRequestSerializationErrorDomain`
- BCURLRequestSerializer errors. Error codes for `BCURLRequestSerializationErrorDomain` correspond to codes in `NSURLErrorDomain`.
+ `BCAPURLRequestSerializationErrorDomain`
+ BCAPURLRequestSerializer errors. Error codes for `BCAPURLRequestSerializationErrorDomain` correspond to codes in `NSURLErrorDomain`.
  */
-FOUNDATION_EXPORT NSString * const BCURLRequestSerializationErrorDomain;
+FOUNDATION_EXPORT NSString * const BCAPURLRequestSerializationErrorDomain;
 
 /**
  ## User info dictionary keys
 
  These keys may exist in the user info dictionary, in addition to those defined for NSError.
 
- - `NSString * const BCNetworkingOperationFailingURLRequestErrorKey`
+ - `NSString * const BCAPNetworkingOperationFailingURLRequestErrorKey`
 
  ### Constants
 
- `BCNetworkingOperationFailingURLRequestErrorKey`
- The corresponding value is an `NSURLRequest` containing the request of the operation associated with an error. This key is only present in the `BCURLRequestSerializationErrorDomain`.
+ `BCAPNetworkingOperationFailingURLRequestErrorKey`
+ The corresponding value is an `NSURLRequest` containing the request of the operation associated with an error. This key is only present in the `BCAPURLRequestSerializationErrorDomain`.
  */
-FOUNDATION_EXPORT NSString * const BCNetworkingOperationFailingURLRequestErrorKey;
+FOUNDATION_EXPORT NSString * const BCAPNetworkingOperationFailingURLRequestErrorKey;
 
 /**
  ## Throttling Bandwidth for HTTP Request Input Streams
@@ -467,13 +467,13 @@ FOUNDATION_EXPORT NSString * const BCNetworkingOperationFailingURLRequestErrorKe
 
  ### Constants
 
- `kBCUploadStream3GSuggestedPacketSize`
+ `kBCAPUploadStream3GSuggestedPacketSize`
  Maximum packet size, in number of bytes. Equal to 16kb.
 
- `kBCUploadStream3GSuggestedDelay`
+ `kBCAPUploadStream3GSuggestedDelay`
  Duration of delay each time a packet is read. Equal to 0.2 seconds.
  */
-FOUNDATION_EXPORT NSUInteger const kBCUploadStream3GSuggestedPacketSize;
-FOUNDATION_EXPORT NSTimeInterval const kBCUploadStream3GSuggestedDelay;
+FOUNDATION_EXPORT NSUInteger const kBCAPUploadStream3GSuggestedPacketSize;
+FOUNDATION_EXPORT NSTimeInterval const kBCAPUploadStream3GSuggestedDelay;
 
 NS_ASSUME_NONNULL_END
